@@ -17,7 +17,8 @@ All demo data is synthetic (`sample_documents/demo_profile.json`). No authentica
 
 - React + TypeScript + Vite (frontend)
 - FastAPI + Pydantic (backend)
-- Supermemory (document vault ingestion, Phase 2) — Featherless, Tavily still future integrations
+- Supermemory (document vault ingestion, Phase 2) and Featherless (document
+  extraction + deterministic timeline, Phase 3) — Tavily still a future integration
 
 See `docs/ARCHITECTURE.md` for how these fit together.
 
@@ -32,7 +33,9 @@ cp .env.example .env
 Fill in real values in `.env` (never commit it — it's gitignored). To use the
 document vault, set `SUPERMEMORY_API_KEY` to a real Supermemory API key.
 `SUPERMEMORY_CONTAINER_TAG` defaults to `proofly_demo_maya` — the backend is
-the only thing that sets this; the frontend never sends a container tag.
+the only thing that sets this; the frontend never sends a container tag. To
+run document analysis, also set `FEATHERLESS_API_KEY`
+(`FEATHERLESS_BASE_URL` and `FEATHERLESS_MODEL` already have sane defaults).
 
 ### 2. Backend (FastAPI)
 
@@ -106,11 +109,32 @@ source .venv/bin/activate
 python scripts/live_smoke_test.py
 ```
 
+### 5. Document Analysis (Featherless extraction + deterministic timeline)
+
+Once at least one document in the vault has reached "Ready" (`done`), open
+the **Dashboard** tab and click **Analyze documents**. This makes one batch
+call to Featherless over every completed document in the demo container,
+validates the structured result, and computes a deterministic timeline in
+Python (no dates or "days remaining" are ever computed by the model — see
+`docs/ARCHITECTURE.md`).
+
+Equivalent API calls:
+
+```bash
+curl -X POST http://localhost:8000/api/analysis/run   # runs analysis, returns the result (409 if no documents are done yet)
+curl http://localhost:8000/api/analysis/latest         # most recent result (404 if none yet)
+curl http://localhost:8000/api/timeline                # just the timeline (404 if none yet)
+```
+
+The latest analysis result lives in an in-process variable — restarting the
+backend, or running more than one worker process, loses it. That's an
+accepted limitation for this prototype; see `docs/ARCHITECTURE.md`.
+
 ## Project Layout
 
 ```
-backend/              FastAPI app, Pydantic schemas, Supermemory service, tests
-frontend/              React + TypeScript + Vite app (incl. Document Vault page)
+backend/              FastAPI app, Pydantic schemas, Supermemory + Featherless services, tests
+frontend/              React + TypeScript + Vite app (Dashboard + Document Vault pages)
 docs/                   Product spec and architecture docs
 sample_documents/       Synthetic demo data (Maya Patel, fictional) + generated demo PDFs
 scripts/                Synthetic PDF generator

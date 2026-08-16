@@ -6,3 +6,33 @@
 body {
   margin: 0;
 }
+
+.app-nav {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem auto 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  max-width: 860px;
+}
+
+.app-nav-btn {
+  border: none;
+  background: none;
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.app-nav-btn:hover {
+  background-color: #f3f4f6;
+}
+
+.app-nav-btn--active {
+  color: #4f46e5;
+  background-color: #eef2ff;
+}

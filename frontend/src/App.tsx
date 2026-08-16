@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import Dashboard from "./Dashboard";
 import DocumentVault from "./DocumentVault";
 
 type BackendStatus = "checking" | "connected" | "disconnected";
+type Page = "dashboard" | "documents";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 function App() {
   const [status, setStatus] = useState<BackendStatus>("checking");
+  const [page, setPage] = useState<Page>("dashboard");
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +44,30 @@ function App() {
           </strong>
         </p>
       </header>
-      <DocumentVault />
+
+      <nav className="app-nav">
+        <button
+          type="button"
+          className={`app-nav-btn${page === "dashboard" ? " app-nav-btn--active" : ""}`}
+          onClick={() => setPage("dashboard")}
+        >
+          Dashboard
+        </button>
+        <button
+          type="button"
+          className={`app-nav-btn${page === "documents" ? " app-nav-btn--active" : ""}`}
+          onClick={() => setPage("documents")}
+        >
+          Documents
+        </button>
+      </nav>
+
+      <div style={{ display: page === "dashboard" ? "block" : "none" }}>
+        <Dashboard />
+      </div>
+      <div style={{ display: page === "documents" ? "block" : "none" }}>
+        <DocumentVault />
+      </div>
     </main>
   );
 }
