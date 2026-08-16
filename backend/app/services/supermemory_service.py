@@ -18,6 +18,7 @@ from supermemory import APIError, ConflictError, NotFoundError
 
 from app.config import Settings
 from app.config import settings as default_settings
+from app.schemas.chat import RetrievedSource
 from app.schemas.vault_document import DocumentProcessingStatus, VaultDocument
 
 
@@ -193,6 +194,94 @@ class SupermemoryService:
 
         return retrieved
 
+    async def search_document_chunks(
+        self,
+        *,
+        query: str,
+        limit: int,
+        threshold: float | None = None,
+    ) -> list[RetrievedSource]:
+        """Document-mode semantic search over the server-controlled demo
+        container (Phase 5 RAG retrieval) — the Python equivalent of
+        `client.search.memories(q=query, container_tag=..., search_mode="documents",
+        limit=limit)`. `container_tag` always comes from settings; no caller
+        may override it.
+
+        Defends in depth the same way `list_completed_documents_with_content`
+        does: chunks belonging to a document tagged as anything other than a
+        manually uploaded source (e.g. a future derived-analysis or chat
+        write-back) are excluded. Results are deduplicated by
+        (document_id, content), capped at `settings.chat_max_context_characters`
+        total, and assigned source keys (S1, S2, ...) in ranked order.
+        Retrieved content is never logged.
+        """
+        client = self._client()
+        kwargs: dict[str, object] = {
+            "q": query,
+            "container_tag": self._settings.supermemory_container_tag,
+            "search_mode": "documents",
+            "limit": limit,
+            "include": {"documents": True},
+        }
+        if threshold is not None:
+            kwargs["threshold"] = threshold
+
+        try:
+            response = await client.search.memories(**kwargs)
+        except APIError as exc:
+            raise SupermemoryUpstreamError(_sanitized_upstream_message(exc)) from exc
+
+        seen: set[tuple[str, str]] = set()
+        sources: list[RetrievedSource] = []
+        total_characters = 0
+
+        for result in response.results:
+            content = (result.chunk or "").strip()
+            if not content:
+                continue
+
+            documents = getattr(result, "documents", None) or []
+            if not documents:
+                continue
+            document = documents[0]
+
+            doc_metadata = _metadata_as_dict(document.metadata)
+            if doc_metadata.get("source") not in (None, "manual_upload"):
+                continue  # exclude derived analyses, chat history, other generated content
+
+            similarity = getattr(result, "similarity", None)
+            if threshold is not None and similarity is not None and similarity < threshold:
+                continue
+
+            dedup_key = (document.id, content)
+            if dedup_key in seen:
+                continue
+
+            if total_characters + len(content) > self._settings.chat_max_context_characters:
+                continue  # cap total retrieved context length
+
+            seen.add(dedup_key)
+            total_characters += len(content)
+
+            result_metadata = _metadata_as_dict(getattr(result, "metadata", None))
+            page_number = _extract_page_number(result_metadata) or _extract_page_number(doc_metadata)
+
+            sources.append(
+                RetrievedSource(
+                    source_key="",
+                    document_id=document.id,
+                    filename=str(doc_metadata.get("original_filename") or document.title or document.id),
+                    content=content,
+                    page_number=page_number,
+                    similarity=similarity,
+                )
+            )
+
+        for index, source in enumerate(sources, start=1):
+            source.source_key = f"S{index}"
+
+        return sources
+
     async def delete_document(self, document_id: str) -> None:
         client = self._client()
         try:
@@ -220,6 +309,22 @@ def _metadata_as_dict(raw: object) -> dict[str, str | float | bool]:
     if isinstance(raw, dict):
         return {str(k): v for k, v in raw.items() if isinstance(v, (str, float, bool, int))}
     return {}
+
+
+def _extract_page_number(metadata: dict[str, str | float | bool]) -> int | None:
+    """Only returns a page number when genuinely supplied in metadata —
+    never guessed. Neither the search API's chunk-mode results nor this
+    app's own ingestion pipeline is guaranteed to attach one.
+    """
+    for key in ("page_number", "page"):
+        value = metadata.get(key)
+        if isinstance(value, bool):
+            continue
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str) and value.isdigit():
+            return int(value)
+    return None
 
 
 def _memory_to_vault_document(memory) -> VaultDocument:  # noqa: ANN001 - supermemory SDK model

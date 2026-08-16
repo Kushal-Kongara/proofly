@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     featherless_max_output_tokens: int = 4000
     featherless_max_total_input_characters: int = 120_000
 
+    # Document-grounded chat retrieval tuning (Phase 5, app/services/supermemory_service.py).
+    chat_retrieval_limit: int = 5
+    chat_relevance_threshold: float | None = None
+    chat_max_context_characters: int = 8000
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

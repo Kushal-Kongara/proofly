@@ -17,9 +17,10 @@ All demo data is synthetic (`sample_documents/demo_profile.json`). No authentica
 
 - React + TypeScript + Vite (frontend)
 - FastAPI + Pydantic (backend)
-- Supermemory (document vault ingestion, Phase 2), Featherless (document
-  extraction + deterministic timeline, Phase 3; O-1A evidence extraction,
-  Phase 4) — Tavily still a future integration
+- Supermemory (document vault ingestion, Phase 2; document-mode semantic
+  search, Phase 5), Featherless (document extraction + deterministic
+  timeline, Phase 3; O-1A evidence extraction, Phase 4; document-grounded
+  chat answers, Phase 5) — Tavily still a future integration
 
 See `docs/ARCHITECTURE.md` for how these fit together.
 
@@ -188,6 +189,32 @@ document text or API keys):
 cd backend
 source .venv/bin/activate
 python scripts/live_o1_smoke_test.py
+```
+
+### 7. Ask Proofly (document-grounded RAG chatbot, Phase 5)
+
+**This is document Q&A, not general immigration advice.** Proofly answers
+only from your own uploaded documents — see "Why chat history is never
+saved as evidence" in `docs/ARCHITECTURE.md` for the full grounding and
+citation-enforcement rules.
+
+Open the **Ask Proofly** tab and ask a question (Enter to send, Shift+Enter
+for a newline). Each question runs Supermemory document-mode semantic
+search over the demo container, hands the retrieved chunks to one
+Featherless answer call, and validates that every citation in the response
+actually points at a retrieved chunk before returning it. Grounded answers
+show expandable **Sources** cards (filename, page when known, a short
+excerpt); when nothing relevant is found, Proofly says so directly rather
+than guessing. Conversation history lives only in the browser tab — it's
+never sent to Supermemory and is lost on refresh (see "Browser-only chat
+history" below).
+
+Equivalent API call:
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "When does my current work authorization expire?", "history": []}'
 ```
 
 ## Project Layout

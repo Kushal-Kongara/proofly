@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import Chat from "./Chat";
 import Dashboard from "./Dashboard";
 import DocumentVault from "./DocumentVault";
 import O1Plan from "./O1Plan";
 
 type BackendStatus = "checking" | "connected" | "disconnected";
-type Page = "dashboard" | "documents" | "o1plan";
+type Page = "dashboard" | "documents" | "o1plan" | "chat";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
@@ -68,6 +69,13 @@ function App() {
         >
           O-1 Plan
         </button>
+        <button
+          type="button"
+          className={`app-nav-btn${page === "chat" ? " app-nav-btn--active" : ""}`}
+          onClick={() => setPage("chat")}
+        >
+          Ask Proofly
+        </button>
       </nav>
 
       <div style={{ display: page === "dashboard" ? "block" : "none" }}>
@@ -78,6 +86,9 @@ function App() {
       </div>
       <div style={{ display: page === "o1plan" ? "block" : "none" }}>
         <O1Plan />
+      </div>
+      <div style={{ display: page === "chat" ? "block" : "none" }}>
+        <Chat />
       </div>
     </main>
   );
