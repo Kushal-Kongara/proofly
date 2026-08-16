@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import DocumentVault from "./DocumentVault";
 
 type BackendStatus = "checking" | "connected" | "disconnected";
 
@@ -27,17 +28,20 @@ function App() {
   }, []);
 
   return (
-    <main style={{ padding: "3rem", textAlign: "center" }}>
-      <h1>Proofly</h1>
-      <p>Immigration clarity, grounded in your documents</p>
-      <p>
-        Backend status:{" "}
-        <strong>
-          {status === "checking" && "checking..."}
-          {status === "connected" && "connected"}
-          {status === "disconnected" && "disconnected"}
-        </strong>
-      </p>
+    <main>
+      <header style={{ padding: "3rem 1.5rem 0", textAlign: "center" }}>
+        <h1>Proofly</h1>
+        <p>Immigration clarity, grounded in your documents</p>
+        <p>
+          Backend status:{" "}
+          <strong>
+            {status === "checking" && "checking..."}
+            {status === "connected" && "connected"}
+            {status === "disconnected" && "disconnected"}
+          </strong>
+        </p>
+      </header>
+      <DocumentVault />
     </main>
   );
 }

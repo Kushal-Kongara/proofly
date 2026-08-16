@@ -17,7 +17,7 @@ All demo data is synthetic (`sample_documents/demo_profile.json`). No authentica
 
 - React + TypeScript + Vite (frontend)
 - FastAPI + Pydantic (backend)
-- Supermemory, Featherless, Tavily (future integrations)
+- Supermemory (document vault ingestion, Phase 2) — Featherless, Tavily still future integrations
 
 See `docs/ARCHITECTURE.md` for how these fit together.
 
@@ -29,7 +29,10 @@ See `docs/ARCHITECTURE.md` for how these fit together.
 cp .env.example .env
 ```
 
-Fill in real values in `.env` (never commit it — it's gitignored).
+Fill in real values in `.env` (never commit it — it's gitignored). To use the
+document vault, set `SUPERMEMORY_API_KEY` to a real Supermemory API key.
+`SUPERMEMORY_CONTAINER_TAG` defaults to `proofly_demo_maya` — the backend is
+the only thing that sets this; the frontend never sends a container tag.
 
 ### 2. Backend (FastAPI)
 
@@ -45,7 +48,8 @@ uvicorn app.main:app --reload --port 8000
 
 Backend runs at http://localhost:8000. Health check: http://localhost:8000/health
 
-Run backend tests:
+Run backend tests (Supermemory is always mocked — no API key or network
+access needed, and no credits are consumed):
 
 ```bash
 cd backend
@@ -73,11 +77,41 @@ cd frontend
 npm run build
 ```
 
+### 4. Document Vault (synthetic demo PDFs + Supermemory upload)
+
+Seven fictional PDFs (I-20/I-94/EAD summaries, resume, employment letter,
+award, judging invitation — all for the fictional "Maya Patel") are already
+generated under `sample_documents/pdfs/`. To regenerate them:
+
+```bash
+cd backend
+source .venv/bin/activate
+pip install -r ../scripts/requirements.txt
+python ../scripts/generate_synthetic_pdfs.py
+```
+
+With the backend and frontend both running and `SUPERMEMORY_API_KEY` set,
+open http://localhost:5173, drag one or more files from
+`sample_documents/pdfs/` onto the Document Vault dropzone (or use the file
+picker), and watch the processing status update until it reaches "Ready".
+Accepted types: PDF, PNG, JPG, JPEG, up to 10 MB each.
+
+To run a one-shot live Supermemory smoke test (uploads exactly one
+synthetic PDF, polls until done/failed, prints the resulting document ID —
+never the API key):
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/live_smoke_test.py
+```
+
 ## Project Layout
 
 ```
-backend/            FastAPI app, Pydantic schemas, tests
-frontend/            React + TypeScript + Vite app
-docs/                 Product spec and architecture docs
-sample_documents/     Synthetic demo data (Maya Patel, fictional)
+backend/              FastAPI app, Pydantic schemas, Supermemory service, tests
+frontend/              React + TypeScript + Vite app (incl. Document Vault page)
+docs/                   Product spec and architecture docs
+sample_documents/       Synthetic demo data (Maya Patel, fictional) + generated demo PDFs
+scripts/                Synthetic PDF generator
 ```

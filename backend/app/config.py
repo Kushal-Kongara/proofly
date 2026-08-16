@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     supermemory_api_key: str | None = None
     tavily_api_key: str | None = None
 
+    # Server-controlled Supermemory container for the demo. Never accepted
+    # from the browser — the backend is the only thing that sets this.
+    supermemory_container_tag: str = "proofly_demo_maya"
+
+    # Upload limits enforced by the document vault endpoints.
+    max_upload_size_bytes: int = 10 * 1024 * 1024
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
