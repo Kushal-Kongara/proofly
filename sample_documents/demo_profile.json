@@ -1,0 +1,636 @@
+{
+  "_disclaimer": "Entirely fictional synthetic demo data for Open Atlas 2026. Not a real person. Not legal advice. Demo reference date: 2026-08-15.",
+  "user": {
+    "id": "user_maya_patel",
+    "full_name": "Maya Patel",
+    "email": "maya.patel.demo@example.com",
+    "country_of_citizenship": "India",
+    "date_of_birth": "1998-04-12",
+    "created_at": "2026-08-10T08:55:00Z"
+  },
+  "documents": [
+    {
+      "id": "doc_i20_001",
+      "user_id": "user_maya_patel",
+      "document_type": "i20",
+      "filename": "i20_maya_patel.pdf",
+      "uploaded_at": "2026-08-10T09:00:00Z",
+      "page_count": 3,
+      "extracted_facts": [
+        {
+          "id": "fact_i20_sevis_id",
+          "document_id": "doc_i20_001",
+          "label": "SEVIS ID",
+          "value": "N0012345678",
+          "source": { "document_id": "doc_i20_001", "page_number": 1, "excerpt": "SEVIS ID: N0012345678" },
+          "confidence": 0.98,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_i20_school",
+          "document_id": "doc_i20_001",
+          "label": "School Name",
+          "value": "Northbridge University",
+          "source": { "document_id": "doc_i20_001", "page_number": 1, "excerpt": "School: Northbridge University" },
+          "confidence": 0.97,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_i20_program_start",
+          "document_id": "doc_i20_001",
+          "label": "Program Start Date",
+          "value": "2022-08-22",
+          "source": { "document_id": "doc_i20_001", "page_number": 1, "excerpt": "Program Start Date: 08/22/2022" },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_i20_program_end",
+          "document_id": "doc_i20_001",
+          "label": "Program End Date",
+          "value": "2024-05-18",
+          "source": { "document_id": "doc_i20_001", "page_number": 1, "excerpt": "Program End Date: 05/18/2024" },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_i20_major",
+          "document_id": "doc_i20_001",
+          "label": "Major",
+          "value": "M.S. Computer Science",
+          "source": { "document_id": "doc_i20_001", "page_number": 2, "excerpt": "Major: M.S. Computer Science" },
+          "confidence": 0.95,
+          "verification_status": "unverified"
+        }
+      ]
+    },
+    {
+      "id": "doc_i94_001",
+      "user_id": "user_maya_patel",
+      "document_type": "i94",
+      "filename": "i94_maya_patel.pdf",
+      "uploaded_at": "2026-08-10T09:02:00Z",
+      "page_count": 1,
+      "extracted_facts": [
+        {
+          "id": "fact_i94_admit_date",
+          "document_id": "doc_i94_001",
+          "label": "Most Recent Date of Entry",
+          "value": "2022-08-19",
+          "source": { "document_id": "doc_i94_001", "page_number": 1, "excerpt": "Most Recent Date of Entry: 08/19/2022" },
+          "confidence": 0.97,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_i94_class",
+          "document_id": "doc_i94_001",
+          "label": "Class of Admission",
+          "value": "F-1",
+          "source": { "document_id": "doc_i94_001", "page_number": 1, "excerpt": "Class of Admission: F1" },
+          "confidence": 0.98,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_i94_admit_until",
+          "document_id": "doc_i94_001",
+          "label": "Admit Until Date",
+          "value": "D/S",
+          "source": { "document_id": "doc_i94_001", "page_number": 1, "excerpt": "Admit Until Date: D/S" },
+          "confidence": 0.95,
+          "verification_status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "doc_ead_001",
+      "user_id": "user_maya_patel",
+      "document_type": "ead",
+      "filename": "ead_card_maya_patel.pdf",
+      "uploaded_at": "2026-08-10T09:05:00Z",
+      "page_count": 1,
+      "extracted_facts": [
+        {
+          "id": "fact_ead_category",
+          "document_id": "doc_ead_001",
+          "label": "Category",
+          "value": "C3B (Post-Completion OPT)",
+          "source": { "document_id": "doc_ead_001", "page_number": 1, "excerpt": "Category: C3B" },
+          "confidence": 0.95,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_ead_valid_from",
+          "document_id": "doc_ead_001",
+          "label": "Card Valid From",
+          "value": "2024-07-01",
+          "source": { "document_id": "doc_ead_001", "page_number": 1, "excerpt": "Valid From: 07/01/2024" },
+          "confidence": 0.97,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_ead_valid_to",
+          "document_id": "doc_ead_001",
+          "label": "Card Valid To",
+          "value": "2025-06-30",
+          "source": { "document_id": "doc_ead_001", "page_number": 1, "excerpt": "Valid To: 06/30/2025" },
+          "confidence": 0.97,
+          "verification_status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "doc_ead_stem_001",
+      "user_id": "user_maya_patel",
+      "document_type": "ead",
+      "filename": "ead_card_stem_ext_maya_patel.pdf",
+      "uploaded_at": "2026-08-10T09:07:00Z",
+      "page_count": 1,
+      "extracted_facts": [
+        {
+          "id": "fact_ead_stem_category",
+          "document_id": "doc_ead_stem_001",
+          "label": "Category",
+          "value": "C3C (24-Month STEM OPT Extension)",
+          "source": { "document_id": "doc_ead_stem_001", "page_number": 1, "excerpt": "Category: C3C" },
+          "confidence": 0.94,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_ead_stem_valid_from",
+          "document_id": "doc_ead_stem_001",
+          "label": "Card Valid From",
+          "value": "2025-07-01",
+          "source": { "document_id": "doc_ead_stem_001", "page_number": 1, "excerpt": "Valid From: 07/01/2025" },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_ead_stem_valid_to",
+          "document_id": "doc_ead_stem_001",
+          "label": "Card Valid To",
+          "value": "2027-06-30",
+          "source": { "document_id": "doc_ead_stem_001", "page_number": 1, "excerpt": "Valid To: 06/30/2027" },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "doc_resume_001",
+      "user_id": "user_maya_patel",
+      "document_type": "resume",
+      "filename": "resume_maya_patel.pdf",
+      "uploaded_at": "2026-08-10T09:10:00Z",
+      "page_count": 2,
+      "extracted_facts": [
+        {
+          "id": "fact_resume_current_title",
+          "document_id": "doc_resume_001",
+          "label": "Current Title",
+          "value": "Machine Learning Engineer, Lumina AI Labs",
+          "source": { "document_id": "doc_resume_001", "page_number": 1, "excerpt": "Machine Learning Engineer — Lumina AI Labs (Jul 2024 – Present)" },
+          "confidence": 0.9,
+          "verification_status": "unverified"
+        },
+        {
+          "id": "fact_resume_education",
+          "document_id": "doc_resume_001",
+          "label": "Education",
+          "value": "M.S. Computer Science, Northbridge University, 2024",
+          "source": { "document_id": "doc_resume_001", "page_number": 2, "excerpt": "M.S. Computer Science, Northbridge University, 2024" },
+          "confidence": 0.92,
+          "verification_status": "unverified"
+        }
+      ]
+    },
+    {
+      "id": "doc_employment_letter_001",
+      "user_id": "user_maya_patel",
+      "document_type": "employment_letter",
+      "filename": "employment_letter_lumina_ai_labs.pdf",
+      "uploaded_at": "2026-08-10T09:12:00Z",
+      "page_count": 1,
+      "extracted_facts": [
+        {
+          "id": "fact_emp_employer",
+          "document_id": "doc_employment_letter_001",
+          "label": "Employer",
+          "value": "Lumina AI Labs, Inc.",
+          "source": { "document_id": "doc_employment_letter_001", "page_number": 1, "excerpt": "This letter confirms Maya Patel's employment with Lumina AI Labs, Inc." },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_emp_title",
+          "document_id": "doc_employment_letter_001",
+          "label": "Job Title",
+          "value": "Machine Learning Engineer",
+          "source": { "document_id": "doc_employment_letter_001", "page_number": 1, "excerpt": "...in the role of Machine Learning Engineer" },
+          "confidence": 0.95,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_emp_start_date",
+          "document_id": "doc_employment_letter_001",
+          "label": "Employment Start Date",
+          "value": "2024-07-15",
+          "source": { "document_id": "doc_employment_letter_001", "page_number": 1, "excerpt": "...effective start date of July 15, 2024" },
+          "confidence": 0.95,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_emp_role_significance",
+          "document_id": "doc_employment_letter_001",
+          "label": "Role Significance Statement",
+          "value": "Maya leads the core model-fairness research initiative and reports directly to the Head of AI Research.",
+          "source": { "document_id": "doc_employment_letter_001", "page_number": 1, "excerpt": "Maya leads our core model-fairness research initiative and reports directly to the Head of AI Research." },
+          "confidence": 0.85,
+          "verification_status": "unverified"
+        }
+      ]
+    },
+    {
+      "id": "doc_award_001",
+      "user_id": "user_maya_patel",
+      "document_type": "award",
+      "filename": "icmla_best_emerging_researcher_award.pdf",
+      "uploaded_at": "2026-08-10T09:15:00Z",
+      "page_count": 1,
+      "extracted_facts": [
+        {
+          "id": "fact_award_name",
+          "document_id": "doc_award_001",
+          "label": "Award Name",
+          "value": "Best Emerging Researcher Award",
+          "source": { "document_id": "doc_award_001", "page_number": 1, "excerpt": "...is pleased to present the Best Emerging Researcher Award to Maya Patel" },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_award_issuer",
+          "document_id": "doc_award_001",
+          "label": "Issuing Organization",
+          "value": "International Conference on Machine Learning Applications (ICMLA)",
+          "source": { "document_id": "doc_award_001", "page_number": 1, "excerpt": "International Conference on Machine Learning Applications (ICMLA)" },
+          "confidence": 0.94,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_award_date",
+          "document_id": "doc_award_001",
+          "label": "Award Date",
+          "value": "2024-11-08",
+          "source": { "document_id": "doc_award_001", "page_number": 1, "excerpt": "Awarded this 8th day of November, 2024" },
+          "confidence": 0.93,
+          "verification_status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "doc_visa_001",
+      "user_id": "user_maya_patel",
+      "document_type": "visa_stamp",
+      "filename": "f1_visa_stamp_maya_patel.pdf",
+      "uploaded_at": "2026-08-10T09:08:00Z",
+      "page_count": 1,
+      "extracted_facts": [
+        {
+          "id": "fact_visa_class",
+          "document_id": "doc_visa_001",
+          "label": "Visa Class",
+          "value": "F-1",
+          "source": { "document_id": "doc_visa_001", "page_number": 1, "excerpt": "Visa Type/Class: F-1" },
+          "confidence": 0.97,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_visa_issue_date",
+          "document_id": "doc_visa_001",
+          "label": "Issue Date",
+          "value": "2022-07-10",
+          "source": { "document_id": "doc_visa_001", "page_number": 1, "excerpt": "Issue Date: 10JUL2022" },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_visa_expiration_date",
+          "document_id": "doc_visa_001",
+          "label": "Expiration Date",
+          "value": "2027-07-09",
+          "source": { "document_id": "doc_visa_001", "page_number": 1, "excerpt": "Expiration Date: 09JUL2027" },
+          "confidence": 0.96,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_visa_entries",
+          "document_id": "doc_visa_001",
+          "label": "Entries",
+          "value": "M",
+          "source": { "document_id": "doc_visa_001", "page_number": 1, "excerpt": "Entries: M" },
+          "confidence": 0.9,
+          "verification_status": "verified"
+        }
+      ]
+    },
+    {
+      "id": "doc_judging_invitation_001",
+      "user_id": "user_maya_patel",
+      "document_type": "judging_invitation",
+      "filename": "techbridge_summit_2026_judging_invitation.pdf",
+      "uploaded_at": "2026-08-10T09:18:00Z",
+      "page_count": 1,
+      "extracted_facts": [
+        {
+          "id": "fact_judging_event",
+          "document_id": "doc_judging_invitation_001",
+          "label": "Event Name",
+          "value": "TechBridge Summit 2026 Student Poster Competition",
+          "source": { "document_id": "doc_judging_invitation_001", "page_number": 1, "excerpt": "...invite you to serve as a judge for the TechBridge Summit 2026 Student Poster Competition" },
+          "confidence": 0.93,
+          "verification_status": "verified"
+        },
+        {
+          "id": "fact_judging_date",
+          "document_id": "doc_judging_invitation_001",
+          "label": "Judging Date",
+          "value": "2026-09-05",
+          "source": { "document_id": "doc_judging_invitation_001", "page_number": 1, "excerpt": "The judging session will take place on September 5, 2026" },
+          "confidence": 0.92,
+          "verification_status": "unverified"
+        }
+      ]
+    }
+  ],
+  "immigration_statuses": [
+    {
+      "id": "status_f1_001",
+      "user_id": "user_maya_patel",
+      "status_type": "f1",
+      "start_date": "2022-08-19",
+      "duration_of_status": true,
+      "end_date": null,
+      "is_current": true,
+      "source": { "document_id": "doc_i94_001", "page_number": 1 },
+      "confidence": 0.97,
+      "verification_status": "verified"
+    }
+  ],
+  "employment_authorizations": [
+    {
+      "id": "employment_auth_opt_001",
+      "user_id": "user_maya_patel",
+      "authorization_type": "post_completion_opt",
+      "start_date": "2024-07-01",
+      "end_date": "2025-06-30",
+      "is_current": false,
+      "source": { "document_id": "doc_ead_001", "page_number": 1 },
+      "confidence": 0.97,
+      "verification_status": "verified"
+    },
+    {
+      "id": "employment_auth_stem_opt_001",
+      "user_id": "user_maya_patel",
+      "authorization_type": "stem_opt_extension",
+      "start_date": "2025-07-01",
+      "end_date": "2027-06-30",
+      "is_current": true,
+      "source": { "document_id": "doc_ead_stem_001", "page_number": 1 },
+      "confidence": 0.96,
+      "verification_status": "verified"
+    }
+  ],
+  "visa_stamps": [
+    {
+      "id": "visa_f1_001",
+      "user_id": "user_maya_patel",
+      "visa_class": "F-1",
+      "issue_date": "2022-07-10",
+      "expiration_date": "2027-07-09",
+      "issuing_post": "U.S. Consulate General, Mumbai",
+      "entries": "M",
+      "source": { "document_id": "doc_visa_001", "page_number": 1 },
+      "confidence": 0.96,
+      "verification_status": "verified"
+    }
+  ],
+  "timeline_events": [
+    {
+      "id": "event_f1_start",
+      "user_id": "user_maya_patel",
+      "event_type": "status_start",
+      "title": "F-1 status begins",
+      "description": "Entered the U.S. on F-1 status to begin M.S. Computer Science program at Northbridge University.",
+      "event_date": "2022-08-19",
+      "is_deadline": false,
+      "related_document_ids": ["doc_i94_001", "doc_i20_001"],
+      "source": { "document_id": "doc_i94_001", "page_number": 1 },
+      "confidence": 0.96,
+      "verification_status": "verified"
+    },
+    {
+      "id": "event_program_end",
+      "user_id": "user_maya_patel",
+      "event_type": "other",
+      "title": "Academic program end date",
+      "description": "M.S. Computer Science program end date per I-20. Academic milestone only — does not affect F-1 status, which remains D/S.",
+      "event_date": "2024-05-18",
+      "is_deadline": false,
+      "related_document_ids": ["doc_i20_001"],
+      "source": { "document_id": "doc_i20_001", "page_number": 1 },
+      "confidence": 0.96,
+      "verification_status": "verified"
+    },
+    {
+      "id": "event_opt_start",
+      "user_id": "user_maya_patel",
+      "event_type": "employment_auth_start",
+      "title": "Post-completion OPT begins",
+      "description": "OPT EAD card valid from this date.",
+      "event_date": "2024-07-01",
+      "is_deadline": false,
+      "related_document_ids": ["doc_ead_001"],
+      "source": { "document_id": "doc_ead_001", "page_number": 1 },
+      "confidence": 0.97,
+      "verification_status": "verified"
+    },
+    {
+      "id": "event_stem_ext_filed",
+      "user_id": "user_maya_patel",
+      "event_type": "other",
+      "title": "STEM OPT extension application filed",
+      "description": "Application for the 24-month STEM OPT extension was submitted ahead of the initial OPT card's expiration.",
+      "event_date": "2025-04-01",
+      "is_deadline": false,
+      "related_document_ids": ["doc_ead_001", "doc_ead_stem_001"],
+      "source": null,
+      "confidence": null,
+      "verification_status": "unverified"
+    },
+    {
+      "id": "event_stem_opt_start",
+      "user_id": "user_maya_patel",
+      "event_type": "employment_auth_start",
+      "title": "STEM OPT extension begins",
+      "description": "24-month STEM OPT extension EAD card valid from this date.",
+      "event_date": "2025-07-01",
+      "is_deadline": false,
+      "related_document_ids": ["doc_ead_stem_001"],
+      "source": { "document_id": "doc_ead_stem_001", "page_number": 1 },
+      "confidence": 0.96,
+      "verification_status": "verified"
+    },
+    {
+      "id": "event_judging_upcoming",
+      "user_id": "user_maya_patel",
+      "event_type": "other",
+      "title": "Upcoming judging session — TechBridge Summit 2026",
+      "description": "Scheduled to judge the TechBridge Summit 2026 Student Poster Competition.",
+      "event_date": "2026-09-05",
+      "is_deadline": false,
+      "related_document_ids": ["doc_judging_invitation_001"],
+      "source": { "document_id": "doc_judging_invitation_001", "page_number": 1 },
+      "confidence": 0.92,
+      "verification_status": "unverified"
+    },
+    {
+      "id": "event_passport_reminder",
+      "user_id": "user_maya_patel",
+      "event_type": "other",
+      "title": "Suggested check-in: confirm passport validity",
+      "description": "Reminder to confirm passport validity ahead of any planned international travel.",
+      "event_date": "2026-11-10",
+      "is_deadline": false,
+      "related_document_ids": [],
+      "source": null,
+      "confidence": null,
+      "verification_status": "unverified"
+    },
+    {
+      "id": "event_stem_opt_expiration",
+      "user_id": "user_maya_patel",
+      "event_type": "document_expiration",
+      "title": "STEM OPT EAD expires",
+      "description": "24-month STEM OPT extension EAD card expiration — this is the employment authorization end date.",
+      "event_date": "2027-06-30",
+      "is_deadline": true,
+      "related_document_ids": ["doc_ead_stem_001"],
+      "source": { "document_id": "doc_ead_stem_001", "page_number": 1 },
+      "confidence": 0.96,
+      "verification_status": "verified"
+    },
+    {
+      "id": "event_visa_stamp_expiration",
+      "user_id": "user_maya_patel",
+      "event_type": "document_expiration",
+      "title": "F-1 visa stamp expires",
+      "description": "Days until the visa stamp expires. A valid visa permits the holder to request admission at a U.S. port of entry; it does not guarantee admission or determine authorized stay. Does NOT affect F-1 status (D/S) or STEM OPT employment authorization, which are tracked separately.",
+      "event_date": "2027-07-09",
+      "is_deadline": false,
+      "related_document_ids": ["doc_visa_001"],
+      "source": { "document_id": "doc_visa_001", "page_number": 1 },
+      "confidence": 0.96,
+      "verification_status": "verified"
+    }
+  ],
+  "o1_criteria": [
+    {
+      "id": "criterion_awards",
+      "code": "awards",
+      "name": "Nationally or Internationally Recognized Prizes",
+      "description": "Receipt of nationally or internationally recognized prizes or awards for excellence in the field.",
+      "satisfied": true,
+      "evidence_item_ids": ["evidence_award_001"]
+    },
+    {
+      "id": "criterion_membership",
+      "code": "membership",
+      "name": "Membership in Distinguished Associations",
+      "description": "Membership in associations that require outstanding achievement of their members.",
+      "satisfied": false,
+      "evidence_item_ids": []
+    },
+    {
+      "id": "criterion_published_material",
+      "code": "published_material",
+      "name": "Published Material About the Person",
+      "description": "Published material in professional or major trade publications about the person's work.",
+      "satisfied": false,
+      "evidence_item_ids": []
+    },
+    {
+      "id": "criterion_judging",
+      "code": "judging",
+      "name": "Judge of the Work of Others",
+      "description": "Participation as a judge of the work of others in the same or an allied field.",
+      "satisfied": true,
+      "evidence_item_ids": ["evidence_judging_001"]
+    },
+    {
+      "id": "criterion_original_contribution",
+      "code": "original_contribution",
+      "name": "Original Contributions of Major Significance",
+      "description": "Original scientific, scholarly, or business-related contributions of major significance in the field.",
+      "satisfied": false,
+      "evidence_item_ids": ["evidence_role_significance_001"]
+    },
+    {
+      "id": "criterion_scholarly_articles",
+      "code": "scholarly_articles",
+      "name": "Authorship of Scholarly Articles",
+      "description": "Authorship of scholarly articles in the field, in professional journals or other major media.",
+      "satisfied": false,
+      "evidence_item_ids": []
+    },
+    {
+      "id": "criterion_critical_employment",
+      "code": "critical_employment",
+      "name": "Critical or Essential Capacity",
+      "description": "Employment in a critical or essential capacity for organizations with a distinguished reputation.",
+      "satisfied": false,
+      "evidence_item_ids": ["evidence_role_significance_001"]
+    },
+    {
+      "id": "criterion_high_remuneration",
+      "code": "high_remuneration",
+      "name": "High Salary or Remuneration",
+      "description": "Evidence of a high salary or other significantly high remuneration relative to others in the field.",
+      "satisfied": false,
+      "evidence_item_ids": []
+    }
+  ],
+  "evidence_items": [
+    {
+      "id": "evidence_award_001",
+      "user_id": "user_maya_patel",
+      "criterion_code": "awards",
+      "title": "ICMLA Best Emerging Researcher Award (2024)",
+      "description": "Award recognizing excellence in machine learning research from an international conference.",
+      "source": { "document_id": "doc_award_001", "page_number": 1, "excerpt": "...is pleased to present the Best Emerging Researcher Award to Maya Patel" },
+      "confidence": 0.9,
+      "verification_status": "verified",
+      "notes": null
+    },
+    {
+      "id": "evidence_judging_001",
+      "user_id": "user_maya_patel",
+      "criterion_code": "judging",
+      "title": "Judge, TechBridge Summit 2026 Student Poster Competition",
+      "description": "Invited to evaluate the work of student researchers as a competition judge.",
+      "source": { "document_id": "doc_judging_invitation_001", "page_number": 1, "excerpt": "...invite you to serve as a judge for the TechBridge Summit 2026 Student Poster Competition" },
+      "confidence": 0.85,
+      "verification_status": "unverified",
+      "notes": "Judging session is scheduled but has not yet occurred as of the demo reference date."
+    },
+    {
+      "id": "evidence_role_significance_001",
+      "user_id": "user_maya_patel",
+      "criterion_code": "critical_employment",
+      "title": "Leads core model-fairness research initiative at Lumina AI Labs",
+      "description": "Employment letter states Maya leads a core research initiative and reports directly to the Head of AI Research, suggesting a critical role.",
+      "source": { "document_id": "doc_employment_letter_001", "page_number": 1, "excerpt": "Maya leads our core model-fairness research initiative and reports directly to the Head of AI Research." },
+      "confidence": 0.65,
+      "verification_status": "unverified",
+      "notes": "Weak/indirect evidence — consider also mapping toward original_contribution once supporting publications are gathered."
+    }
+  ]
+}
