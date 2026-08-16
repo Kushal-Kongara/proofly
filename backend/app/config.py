@@ -29,7 +29,8 @@ class Settings(BaseSettings):
 
     # Names of future integration keys (values live only in .env, never here).
     featherless_api_key: str | None = None
-    featherless_base_url: str | None = None
+    featherless_base_url: str = "https://api.featherless.ai/v1"
+    featherless_model: str = "deepseek-ai/DeepSeek-V3.2"
     supermemory_api_key: str | None = None
     tavily_api_key: str | None = None
 
@@ -39,6 +40,11 @@ class Settings(BaseSettings):
 
     # Upload limits enforced by the document vault endpoints.
     max_upload_size_bytes: int = 10 * 1024 * 1024
+
+    # Featherless extraction tuning (app/services/featherless_service.py).
+    featherless_request_timeout_seconds: float = 60.0
+    featherless_max_output_tokens: int = 4000
+    featherless_max_total_input_characters: int = 120_000
 
     @property
     def cors_origin_list(self) -> list[str]:

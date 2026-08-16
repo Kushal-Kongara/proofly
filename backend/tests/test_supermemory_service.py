@@ -20,6 +20,30 @@ from app.services.supermemory_service import (
 )
 
 
+def _memory(
+    *,
+    id: str,
+    status: str,
+    content: str | None,
+    source: str | None = "manual_upload",
+    container_tags: list[str] | None = None,
+    filename: str = "doc.pdf",
+) -> SimpleNamespace:
+    metadata = {"original_filename": filename, "content_type": "application/pdf"}
+    if source is not None:
+        metadata["source"] = source
+    return SimpleNamespace(
+        id=id,
+        custom_id=f"proofly_{id}",
+        metadata=metadata,
+        status=status,
+        created_at="2026-08-10T09:10:00Z",
+        title=None,
+        content=content,
+        container_tags=container_tags if container_tags is not None else ["proofly_demo_maya"],
+    )
+
+
 def _conflict_error() -> ConflictError:
     request = httpx.Request("DELETE", "https://api.supermemory.ai/v3/documents/sm_doc_1")
     response = httpx.Response(409, request=request, json={"error": "Document is still processing"})
@@ -156,6 +180,40 @@ async def test_delete_while_processing_maps_conflict_to_supermemory_conflict_err
     # The safe message must not leak the raw SDK exception's own text/class.
     assert "ConflictError" not in str(exc_info.value)
     assert "Error code: 409" not in str(exc_info.value)
+
+
+@pytest.mark.anyio
+async def test_list_completed_documents_with_content_filters_correctly(monkeypatch: pytest.MonkeyPatch):
+    memories = [
+        _memory(id="done_doc", status="done", content="extracted text here"),
+        _memory(id="queued_doc", status="queued", content=None),
+        _memory(id="no_content_doc", status="done", content=""),
+        _memory(id="derived_doc", status="done", content="should be ignored", source="derived_analysis"),
+        _memory(id="wrong_container_doc", status="done", content="should be ignored", container_tags=["some_other_container"]),
+        _memory(id="legacy_doc", status="done", content="no source key set", source=None),
+    ]
+
+    class MultiDocDocumentsResource(FakeDocumentsResource):
+        async def list(self, **kwargs):
+            self.list_calls.append(kwargs)
+            return SimpleNamespace(memories=memories, pagination=SimpleNamespace(current_page=1, total_items=len(memories), total_pages=1, limit=10))
+
+    class MultiDocAsyncSupermemory(FakeAsyncSupermemory):
+        def __init__(self, api_key: str) -> None:
+            self.api_key = api_key
+            self.documents = MultiDocDocumentsResource()
+            FakeAsyncSupermemory.last_instance = self
+
+    monkeypatch.setattr(sm_service, "AsyncSupermemory", MultiDocAsyncSupermemory)
+    service = SupermemoryService(settings=_settings())
+
+    retrieved = await service.list_completed_documents_with_content()
+
+    ids = {doc.document_id for doc in retrieved}
+    assert ids == {"done_doc", "legacy_doc"}
+    done = next(doc for doc in retrieved if doc.document_id == "done_doc")
+    assert done.content == "extracted text here"
+    assert done.filename == "doc.pdf"
 
 
 @pytest.mark.parametrize(

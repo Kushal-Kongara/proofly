@@ -12,12 +12,24 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
+from pydantic import BaseModel
 from supermemory import AsyncSupermemory
 from supermemory import APIError, ConflictError, NotFoundError
 
 from app.config import Settings
 from app.config import settings as default_settings
 from app.schemas.vault_document import DocumentProcessingStatus, VaultDocument
+
+
+class RetrievedDocument(BaseModel):
+    """A completed document's extracted text content, ready to hand to the
+    Featherless extraction service. Never persisted, never logged in full.
+    """
+
+    document_id: str
+    filename: str
+    content_type: str
+    content: str
 
 _STATUS_MAP: dict[str, DocumentProcessingStatus] = {
     "queued": DocumentProcessingStatus.QUEUED,
@@ -135,6 +147,51 @@ class SupermemoryService:
             raise SupermemoryUpstreamError(_sanitized_upstream_message(exc)) from exc
 
         return _document_get_response_to_vault_document(document)
+
+    async def list_completed_documents_with_content(self) -> list[RetrievedDocument]:
+        """Documents in the server-controlled demo container whose
+        processing status is 'done', with their extracted text content.
+
+        Defends in depth even though the query itself is already scoped:
+        skips anything whose own `container_tags` don't include the demo
+        container, and skips anything tagged as a previously derived
+        analysis result rather than a manually uploaded source document.
+        """
+        client = self._client()
+        try:
+            response = await client.documents.list(
+                container_tags=[self._settings.supermemory_container_tag],
+                include_content=True,
+            )
+        except APIError as exc:
+            raise SupermemoryUpstreamError(_sanitized_upstream_message(exc)) from exc
+
+        retrieved: list[RetrievedDocument] = []
+        for memory in response.memories:
+            if normalize_processing_status(memory.status) != DocumentProcessingStatus.DONE:
+                continue
+
+            container_tags = getattr(memory, "container_tags", None) or []
+            if container_tags and self._settings.supermemory_container_tag not in container_tags:
+                continue
+
+            metadata = _metadata_as_dict(memory.metadata)
+            if metadata.get("source") not in (None, "manual_upload"):
+                continue  # ignore any previously derived-analysis documents
+
+            if not memory.content:
+                continue
+
+            retrieved.append(
+                RetrievedDocument(
+                    document_id=memory.id,
+                    filename=str(metadata.get("original_filename") or memory.title or memory.id),
+                    content_type=str(metadata.get("content_type", "application/octet-stream")),
+                    content=memory.content,
+                )
+            )
+
+        return retrieved
 
     async def delete_document(self, document_id: str) -> None:
         client = self._client()
