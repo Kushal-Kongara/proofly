@@ -31,6 +31,25 @@ from app.schemas.evidence_item import EvidenceItem
 from app.schemas.extracted_fact import ExtractedFact
 from app.schemas.immigration_document import ImmigrationDocument
 from app.schemas.immigration_status import ImmigrationStatus
+from app.schemas.o1_assessment import (
+    O1ActionItem,
+    O1ActionPriority,
+    O1ActionType,
+    O1Assessment,
+    O1AssessmentSummary,
+    O1CriteriaResponse,
+    O1CriterionAssessment,
+    O1CriterionDefinition,
+    O1CriterionNoteDraft,
+    O1CriterionStatus,
+    O1DocumentationCoverage,
+    O1EvidenceItem,
+    O1EvidenceItemDraft,
+    O1EvidenceRole,
+    O1Gap,
+    O1InformationalCategory,
+    O1LLMAnalysisOutput,
+)
 from app.schemas.o1_criterion import O1Criterion
 from app.schemas.source_citation import SourceCitation
 from app.schemas.timeline_event import TimelineEvent
@@ -57,8 +76,25 @@ __all__ = [
     "ImmigrationStatusType",
     "LLMAnalysisOutput",
     "MissingInformationItem",
+    "O1ActionItem",
+    "O1ActionPriority",
+    "O1ActionType",
+    "O1Assessment",
+    "O1AssessmentSummary",
+    "O1CriteriaResponse",
     "O1Criterion",
+    "O1CriterionAssessment",
     "O1CriterionCode",
+    "O1CriterionDefinition",
+    "O1CriterionNoteDraft",
+    "O1CriterionStatus",
+    "O1DocumentationCoverage",
+    "O1EvidenceItem",
+    "O1EvidenceItemDraft",
+    "O1EvidenceRole",
+    "O1Gap",
+    "O1InformationalCategory",
+    "O1LLMAnalysisOutput",
     "PassportRecord",
     "ReportedImmigrationClassification",
     "SourceCitation",

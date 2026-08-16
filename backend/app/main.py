@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import analysis, documents
+from app.routers import analysis, documents, o1
 
 app = FastAPI(title="Proofly API", version="0.1.0")
 
@@ -16,6 +16,7 @@ app.add_middleware(
 
 app.include_router(documents.router)
 app.include_router(analysis.router)
+app.include_router(o1.router)
 
 
 @app.get("/health")

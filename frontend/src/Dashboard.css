@@ -87,6 +87,7 @@
 .summary-card-value {
   font-size: 1.15rem;
   font-weight: 700;
+  color: #111827;
 }
 
 .summary-card-detail {
@@ -188,6 +189,7 @@
 
 .timeline-title {
   font-weight: 600;
+  color: #111827;
 }
 
 .category-badge {

@@ -10,6 +10,7 @@ import {
   runAnalysis,
 } from "./api/analysis";
 import { VaultDocument, listDocuments } from "./api/documents";
+import { formatDateOnly } from "./lib/date";
 import "./Dashboard.css";
 
 const CLASSIFICATION_LABELS: Record<ImmigrationClassification, string> = {
@@ -33,13 +34,6 @@ const CATEGORY_LABELS: Record<TimelineEventCategory, string> = {
   status: "Immigration status",
   other: "Other",
 };
-
-function formatDate(value: string | null): string {
-  if (!value) return "—";
-  const parsed = new Date(`${value}T00:00:00Z`);
-  if (Number.isNaN(parsed.getTime())) return value;
-  return parsed.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
-}
 
 function daysRemainingLabel(days: number | null, status: TimelineAnalysisEvent["status"]): string {
   if (days === null) return "No countdown (D/S)";
@@ -161,7 +155,7 @@ export default function Dashboard() {
 
             <div className="summary-card">
               <span className="summary-card-label">Work authorization expiration</span>
-              <span className="summary-card-value">{currentAuth?.end_date ? formatDate(currentAuth.end_date) : "—"}</span>
+              <span className="summary-card-value">{currentAuth?.end_date ? formatDateOnly(currentAuth.end_date) : "—"}</span>
               {currentAuth?.end_date && <NeedsReviewBadge />}
             </div>
 
@@ -193,7 +187,7 @@ export default function Dashboard() {
 
           <div className="timeline-section">
             <h3>Timeline</h3>
-            <p className="timeline-as-of">As of {formatDate(analysis.as_of_date)}</p>
+            <p className="timeline-as-of">As of {formatDateOnly(analysis.as_of_date)}</p>
             {analysis.timeline.length === 0 && <p className="dashboard-empty">No dated events yet.</p>}
             <div className="timeline-list">
               {analysis.timeline.map((event: TimelineAnalysisEvent, i) => (
@@ -204,7 +198,7 @@ export default function Dashboard() {
                     <NeedsReviewBadge />
                   </div>
                   <div className="timeline-row-detail">
-                    <span>{event.event_date ? formatDate(event.event_date) : "No fixed date"}</span>
+                    <span>{event.event_date ? formatDateOnly(event.event_date) : "No fixed date"}</span>
                     <span className={`countdown countdown--${event.status}`}>
                       {daysRemainingLabel(event.days_remaining, event.status)}
                     </span>

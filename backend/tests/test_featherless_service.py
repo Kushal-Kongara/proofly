@@ -207,7 +207,9 @@ def test_prompt_injection_inside_document_is_treated_as_inert_data():
     )
     doc = _doc(content=f"Employment letter body.\n\n{injected}\n\nEnd of letter.")
 
-    messages = _build_messages([doc])
+    from app.schemas.analysis import LLMAnalysisOutput
+
+    messages = _build_messages([doc], fs_module._SYSTEM_PROMPT_TEMPLATE, LLMAnalysisOutput)
 
     # Exactly one system + one user message — injected text never becomes a
     # new message or a new role, no matter what it claims to be.

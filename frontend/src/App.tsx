@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import Dashboard from "./Dashboard";
 import DocumentVault from "./DocumentVault";
+import O1Plan from "./O1Plan";
 
 type BackendStatus = "checking" | "connected" | "disconnected";
-type Page = "dashboard" | "documents";
+type Page = "dashboard" | "documents" | "o1plan";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
@@ -60,6 +61,13 @@ function App() {
         >
           Documents
         </button>
+        <button
+          type="button"
+          className={`app-nav-btn${page === "o1plan" ? " app-nav-btn--active" : ""}`}
+          onClick={() => setPage("o1plan")}
+        >
+          O-1 Plan
+        </button>
       </nav>
 
       <div style={{ display: page === "dashboard" ? "block" : "none" }}>
@@ -67,6 +75,9 @@ function App() {
       </div>
       <div style={{ display: page === "documents" ? "block" : "none" }}>
         <DocumentVault />
+      </div>
+      <div style={{ display: page === "o1plan" ? "block" : "none" }}>
+        <O1Plan />
       </div>
     </main>
   );

@@ -17,8 +17,9 @@ All demo data is synthetic (`sample_documents/demo_profile.json`). No authentica
 
 - React + TypeScript + Vite (frontend)
 - FastAPI + Pydantic (backend)
-- Supermemory (document vault ingestion, Phase 2) and Featherless (document
-  extraction + deterministic timeline, Phase 3) — Tavily still a future integration
+- Supermemory (document vault ingestion, Phase 2), Featherless (document
+  extraction + deterministic timeline, Phase 3; O-1A evidence extraction,
+  Phase 4) — Tavily still a future integration
 
 See `docs/ARCHITECTURE.md` for how these fit together.
 
@@ -129,6 +130,65 @@ curl http://localhost:8000/api/timeline                # just the timeline (404 
 The latest analysis result lives in an in-process variable — restarting the
 backend, or running more than one worker process, loses it. That's an
 accepted limitation for this prototype; see `docs/ARCHITECTURE.md`.
+
+### 6. O-1A Evidence Readiness Planner (Phase 4)
+
+**Proofly organizes evidence and identifies gaps — it never predicts
+approval, computes an eligibility percentage, or states that a USCIS
+criterion is legally satisfied.** Only an immigration attorney can make
+that determination. See "Evidence coverage vs. legal eligibility" below.
+
+Open the **O-1 Plan** tab and click **Build my evidence plan**. This makes
+one batch Featherless call over every completed document in the demo
+container, validates the structured result, and deterministically (in
+Python, never the model) maps evidence onto the eight static O-1A criteria,
+computes document-coverage counts, and generates a prioritized
+evidence-gathering action plan. Use **Print / Save report** for a
+print-friendly copy.
+
+Equivalent API calls:
+
+```bash
+curl http://localhost:8000/api/o1/criteria                # the 8 static criteria + official USCIS links
+curl -X POST http://localhost:8000/api/o1/assessment/run  # runs the assessment (409 if no documents are done yet)
+curl http://localhost:8000/api/o1/assessment/latest        # most recent assessment (404 if none yet)
+```
+
+The static criteria (`backend/app/data/o1_criteria.py`) are sourced from:
+
+- https://www.uscis.gov/working-in-the-united-states/temporary-workers/o-1-visa-individuals-with-extraordinary-ability-or-achievement
+- https://www.uscis.gov/policy-manual/volume-2-part-m-chapter-4
+
+Last reviewed **2026-08-15** (`O1_CRITERIA_LAST_REVIEWED` in that file) —
+update this date whenever the static text is edited.
+
+#### Evidence coverage vs. legal eligibility
+
+A criterion status of `documented_support_found` means *a document was
+found that plainly speaks to that criterion* — it is document coverage,
+not a legal conclusion. Every criterion assessment carries
+`requires_attorney_review: true`, and every response includes the fixed
+disclaimer: **"Document coverage is not a determination that any USCIS
+criterion is satisfied."** Status values are deliberately never
+`eligible`/`ineligible`/`approved`/`denied`/`criterion_satisfied`, and no
+API response ever contains a percentage, probability, or approval-chance
+figure — see `docs/ARCHITECTURE.md` for the full reasoning rules.
+
+Like the Phase 3 analysis store, the latest O-1A assessment lives in an
+in-process variable only — restarting the backend, or running more than
+one worker, loses it, and there is no attorney-review workflow. Same
+accepted prototype limitation as Phase 3.
+
+To run a one-shot live smoke test (uploads only the synthetic PDFs not
+already in the container, waits for processing, then makes exactly one
+live Featherless O-1A call and prints a coverage report — never raw
+document text or API keys):
+
+```bash
+cd backend
+source .venv/bin/activate
+python scripts/live_o1_smoke_test.py
+```
 
 ## Project Layout
 

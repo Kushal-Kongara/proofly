@@ -1,10 +1,17 @@
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   font-family: system-ui, -apple-system, sans-serif;
 }
 
+/* Explicit default text/background: without this, a browser/OS dark
+   preference flips the inherited default text color toward white while
+   every card in this app has an explicit white/light background — that
+   combination is invisible. Every card component still sets its own
+   colors; this is only the fallback the rest of the app inherits from. */
 body {
   margin: 0;
+  background-color: #ffffff;
+  color: #111827;
 }
 
 .app-nav {
@@ -20,7 +27,7 @@ body {
 .app-nav-btn {
   border: none;
   background: none;
-  color: #6b7280;
+  color: #4b5563;
   font-size: 0.95rem;
   font-weight: 600;
   padding: 0.4rem 0.9rem;
