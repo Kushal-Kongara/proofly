@@ -128,14 +128,17 @@ same reasoning.
 
 ## 6. Instance recommendation for judging
 
-Use the Render **Starter** plan for both services during judging (already
-`render.yaml`'s default `plan: starter` on `proofly-api`; `proofly-web` is
-a static site with no compute plan). Starter avoids the free-tier's
-spin-down-after-idle behavior — see the warm-up checklist below for why a
-cold start during a live judging session is the specific failure mode to
-avoid. There's no in-memory-state reason to go beyond Starter — the
-single-worker constraint above already caps this build at one process
-regardless of instance size.
+`render.yaml` currently runs `proofly-api` on the Render **Free** plan
+(`proofly-web` is a static site with no compute plan either way). Free
+spins the backend down after a period of idle traffic — the frontend's
+cold-start screen (Section 12) is the mitigation for that, not a
+replacement for it. For a live judging session specifically, prefer
+upgrading `proofly-api` to **Starter** in the Render dashboard beforehand:
+it avoids the spin-down entirely, so there's no wake-up wait — even a
+well-handled one — in front of judges. There's no in-memory-state reason to
+go beyond Starter — the single-worker constraint above already caps this
+build at one process regardless of instance size. Revert to Free after
+judging if cost is a concern; the cold-start screen keeps that safe to do.
 
 ## 7. Deployment smoke-test checklist
 
@@ -143,10 +146,13 @@ Run through this once after every fresh deploy, before telling anyone the
 environment is live:
 
 - [ ] `GET https://<proofly-api-url>/health` returns `{"status":"ok","service":"proofly-api"}`.
-- [ ] Open `https://<proofly-web-url>` — the header's "Backend status" reads
-      **connected** (confirms `VITE_API_BASE_URL` and `CORS_ORIGINS` are
-      both correct — a CORS misconfiguration shows as **disconnected**
-      here, not a console-only error).
+- [ ] Open `https://<proofly-web-url>` — on a cold backend it briefly shows
+      "Starting Proofly…" (Section 12), then the normal app with the
+      header's "Backend status" reading **connected** (confirms
+      `VITE_API_BASE_URL` and `CORS_ORIGINS` are both correct). A CORS or
+      URL misconfiguration instead runs out the full retry window and shows
+      "Proofly is unavailable right now" with a **Retry connection**
+      button, not a console-only error.
 - [ ] Upload one synthetic PDF from `sample_documents/pdfs/` via the
       Document Vault tab; confirm it reaches "Ready".
 - [ ] Dashboard tab → **Analyze documents** succeeds (one real Featherless
@@ -245,6 +251,43 @@ so an anonymous visitor can't mutate the one shared Supermemory container:
   `"true"` and redeploy.
 - Both flags default to `false`/unset for local development and the test
   suite — nothing about local `npm run dev` / `uvicorn --reload` changes.
+
+## 12. Cold-start experience (Phase 7C)
+
+`proofly-api` on Render's Free plan (Section 6) spins down after a period
+of no traffic and can take up to roughly a minute to wake back up on the
+next request. Before Phase 7C, `frontend/src/App.tsx` made exactly one
+`/health` call on page load and immediately showed "disconnected" on any
+failure — worse, it mounted every feature page (Dashboard, Documents, O-1
+Plan, Chat, Official Updates) unconditionally, so each of them fired its
+own request(s) into a sleeping backend on every cold page load. Neither of
+those is true anymore:
+
+- On page load, `App.tsx` shows a **"Starting Proofly…"** screen ("The
+  public demo server may take up to a minute to wake up.") instead of an
+  immediate failure state.
+- It retries `GET /health` sequentially — one request at a time, never
+  overlapping — with a 5s per-attempt timeout and a 2s pause between
+  attempts, for up to 90s total
+  (`frontend/src/api/backendHealth.ts::pollBackendHealth`,
+  `createHealthCheckAttempt`).
+- **No feature page mounts until a `/health` attempt actually succeeds** —
+  the Dashboard/Documents/O-1 Plan/Chat/Updates components, and their nav,
+  don't exist in the DOM before that, so none of them can fire a request
+  against a still-sleeping backend.
+- The instant `/health` succeeds, the normal app renders — header, nav,
+  every page — exactly as before, including the existing "Backend status:
+  connected" label.
+- If 90s elapses with no success, it shows a **"Proofly is unavailable
+  right now"** screen with a **Retry connection** button, which starts a
+  full fresh 90s cycle (not a continuation of the expired one).
+- Local development (`npm run dev` against a already-running local
+  `uvicorn`) is unaffected in practice — the very first `/health` attempt
+  succeeds immediately, so the starting screen is on-screen for well under
+  a second.
+- The UI text never mentions Render, the hosting provider, or "free
+  hosting" — it only ever says "the public demo server," so the permanent
+  normal-mode UI stays host-agnostic.
 
 ## Appendix: why Python 3.13.8
 

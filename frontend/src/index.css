@@ -14,6 +14,63 @@ body {
   color: #111827;
 }
 
+.backend-boot-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.backend-boot-card {
+  max-width: 420px;
+}
+
+.backend-boot-card h1 {
+  font-size: 1.4rem;
+  margin: 0 0 0.5rem;
+  color: #111827;
+}
+
+.backend-boot-card p {
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.backend-boot-spinner {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 auto 1.25rem;
+  border-radius: 50%;
+  border: 3px solid #e0e7ff;
+  border-top-color: #4f46e5;
+  animation: backend-boot-spin 0.8s linear infinite;
+}
+
+@keyframes backend-boot-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.backend-boot-retry-btn {
+  margin-top: 1.25rem;
+  border: none;
+  background-color: #4f46e5;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.55rem 1.25rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.backend-boot-retry-btn:hover {
+  background-color: #4338ca;
+}
+
 .demo-banner {
   display: flex;
   align-items: center;
