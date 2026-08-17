@@ -1,10 +1,14 @@
-# Deployment (Render, Phase 7A)
+# Deployment (Render, Phase 7A/7B)
 
 Proofly deploys as two Render services from one Blueprint (`render.yaml` at
 the repo root): `proofly-api` (FastAPI backend) and `proofly-web` (static
 React/Vite frontend). This document is the deploy runbook. It never
 contains a secret value — only variable **names**, same rule as
 `docs/ARCHITECTURE.md`'s Security section and `.env.example`.
+
+**Deployed backend URL:** `https://proofly-api-ea2c.onrender.com` (this is
+not a secret — it's the value `VITE_API_BASE_URL` must be set to on
+`proofly-web`). The deployed frontend URL is recorded in `README.md`.
 
 ## 1. Blueprint deployment steps
 
@@ -42,6 +46,7 @@ each once both URLs are known. This is normal, not a failure.
 | `SUPERMEMORY_API_KEY` | You, in the Render dashboard | Secret. Same rule. |
 | `TAVILY_API_KEY` | You, in the Render dashboard | Secret. Same rule. |
 | `CORS_ORIGINS` | You, in the Render dashboard | Not secret, but deployment-specific — the deployed frontend's exact origin. Format below. |
+| `DEMO_READ_ONLY` | Blueprint (`render.yaml`) | `"true"`. Not a secret. See Section 11 below. |
 
 `PORT` is never set manually — Render injects it, and `startCommand` reads
 it as `$PORT`.
@@ -51,6 +56,7 @@ it as `$PORT`.
 | Variable | Set by | Notes |
 |---|---|---|
 | `VITE_API_BASE_URL` | You, in the Render dashboard | The deployed `proofly-api` URL. No backend API keys ever belong here — the frontend never talks to Featherless/Supermemory/Tavily directly (see `docs/ARCHITECTURE.md`'s Overview). |
+| `VITE_DEMO_READ_ONLY` | Blueprint (`render.yaml`) | `"true"`. Not a secret. Must agree with backend's `DEMO_READ_ONLY` — see Section 11. |
 
 ## 3. Setting the final frontend and backend URLs
 
@@ -205,6 +211,40 @@ uploaded goes into one server-controlled Supermemory container
 (`SUPERMEMORY_CONTAINER_TAG`) shared by every visitor to the deployed URL.
 Never upload a real person's real immigration documents to a Render
 deployment of this project.
+
+This applies to whoever seeds the container before enabling read-only mode
+(Section 11) — once `DEMO_READ_ONLY=true` is live, the public deployment
+itself can no longer accept an upload of any kind.
+
+## 11. Public-demo read-only mode (Phase 7B)
+
+`render.yaml` sets `DEMO_READ_ONLY=true` on `proofly-api` and
+`VITE_DEMO_READ_ONLY=true` on `proofly-web`. Together these turn the public
+deployment into a read-only showcase of the preloaded synthetic documents,
+so an anonymous visitor can't mutate the one shared Supermemory container:
+
+- Backend: `POST /api/documents/upload` and `DELETE /api/documents/{id}`
+  both return `403` with the fixed body `"Uploads and deletions are
+  disabled in the public demo."`, checked **before** any Supermemory call
+  (`app/routers/documents.py::_reject_if_demo_read_only`). Listing
+  (`GET /api/documents`) and status checks
+  (`GET /api/documents/{id}/status`) are unaffected — polling still works.
+  Dashboard analysis, the O-1A assessment, grounded chat, and Official
+  Updates are all unaffected; none of them writes to the document vault.
+- Frontend: the Document Vault page hides the upload dropzone (replaced
+  with a disabled-state explanation) and disables every delete button, and
+  a banner appears on every page explaining the deployment is a read-only
+  public demo. `frontend/src/DocumentVault.tsx` also refuses client-side
+  before attempting either call — it never shows a fake "upload
+  succeeded"/"deleted" message for a write the backend would reject.
+- **To seed or refresh the deployed demo's documents**, temporarily unset
+  `DEMO_READ_ONLY`/`VITE_DEMO_READ_ONLY` (or run the upload against
+  `proofly-api` directly with a local `SUPERMEMORY_API_KEY` pointed at the
+  same container), upload only the files from
+  `sample_documents/pdfs/` (Section 10), then restore both flags to
+  `"true"` and redeploy.
+- Both flags default to `false`/unset for local development and the test
+  suite — nothing about local `npm run dev` / `uvicorn --reload` changes.
 
 ## Appendix: why Python 3.13.8
 

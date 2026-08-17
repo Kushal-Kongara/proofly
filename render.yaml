@@ -64,6 +64,12 @@ services:
         value: deepseek-ai/DeepSeek-V3.2
       - key: SUPERMEMORY_CONTAINER_TAG
         value: proofly_demo_maya
+      # Public-demo hardening (Phase 7B): not a secret. Refuses document
+      # upload/delete with 403 before ever calling Supermemory, so an
+      # anonymous visitor to this deployment can't mutate the one shared
+      # demo container. See docs/DEPLOYMENT.md.
+      - key: DEMO_READ_ONLY
+        value: "true"
 
   # --- Frontend: static React/Vite build (frontend/src) ---------------
   - type: web
@@ -83,3 +89,8 @@ services:
       # Render dashboard after proofly-api's URL is known.
       - key: VITE_API_BASE_URL
         sync: false
+      # Public-demo hardening (Phase 7B): not a secret. Must match the
+      # backend's DEMO_READ_ONLY above — shows the read-only banner and
+      # disables upload/delete controls in the UI. See docs/DEPLOYMENT.md.
+      - key: VITE_DEMO_READ_ONLY
+        value: "true"

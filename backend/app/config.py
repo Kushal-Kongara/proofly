@@ -38,6 +38,13 @@ class Settings(BaseSettings):
     # from the browser — the backend is the only thing that sets this.
     supermemory_container_tag: str = "proofly_demo_maya"
 
+    # Public-demo hardening (Phase 7B): when true, the document vault's
+    # write endpoints (upload/delete) refuse before ever calling
+    # Supermemory, so an anonymous visitor to the deployed demo can't
+    # mutate the one shared container. False by default so local
+    # development and the test suite are unaffected.
+    demo_read_only: bool = False
+
     # Upload limits enforced by the document vault endpoints.
     max_upload_size_bytes: int = 10 * 1024 * 1024
 

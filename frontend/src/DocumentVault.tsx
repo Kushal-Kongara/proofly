@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
+import { DEMO_READ_ONLY } from "./api/client";
 import {
   ApiError,
   TERMINAL_STATUSES,
@@ -103,7 +104,10 @@ export default function DocumentVault() {
   }, []);
 
   const uploadFiles = useCallback(async (files: File[]) => {
-    if (files.length === 0) return;
+    // Belt-and-suspenders: the dropzone is hidden entirely in the public
+    // demo, but never attempt — let alone pretend to succeed at — a write
+    // the backend will reject with 403 anyway.
+    if (DEMO_READ_ONLY || files.length === 0) return;
 
     setErrorMessage(null);
     setSuccessMessage(null);
@@ -164,10 +168,10 @@ export default function DocumentVault() {
   };
 
   const handleDelete = async (doc: VaultDocument) => {
-    // Belt-and-suspenders: the button is disabled while a document is still
-    // processing, but status can flip between renders — refuse client-side
-    // too rather than relying solely on the backend's 409.
-    if (!TERMINAL_STATUSES.has(doc.status)) return;
+    // Belt-and-suspenders: the button is disabled in the public demo and
+    // while a document is still processing, but never attempt — let alone
+    // pretend to succeed at — a write the backend will reject anyway.
+    if (DEMO_READ_ONLY || !TERMINAL_STATUSES.has(doc.status)) return;
 
     const confirmed = window.confirm(`Delete "${doc.filename}"? This cannot be undone.`);
     if (!confirmed) return;
@@ -187,31 +191,41 @@ export default function DocumentVault() {
         <p className="vault-subtitle">Synthetic demo documents only. Nothing here is a real record.</p>
       </div>
 
-      <div
-        className={`vault-dropzone${isDragging ? " vault-dropzone--dragging" : ""}`}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragging(true);
-        }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        onClick={() => fileInputRef.current?.click()}
-        role="button"
-        tabIndex={0}
-      >
-        <p className="vault-dropzone-title">Drag and drop files here, or click to browse</p>
-        <p className="vault-dropzone-hint">
-          Accepted: PDF, PNG, JPG, JPEG · Max 10 MB per file · Multiple files allowed
-        </p>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept={ACCEPTED_EXTENSIONS.join(",")}
-          onChange={handleFileInputChange}
-          className="vault-file-input"
-        />
-      </div>
+      {DEMO_READ_ONLY ? (
+        <div className="vault-dropzone vault-dropzone--disabled">
+          <p className="vault-dropzone-title">Uploads are disabled in the public demo</p>
+          <p className="vault-dropzone-hint">
+            This deployment uses preloaded synthetic documents only — see the documents already in
+            the vault below.
+          </p>
+        </div>
+      ) : (
+        <div
+          className={`vault-dropzone${isDragging ? " vault-dropzone--dragging" : ""}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          role="button"
+          tabIndex={0}
+        >
+          <p className="vault-dropzone-title">Drag and drop files here, or click to browse</p>
+          <p className="vault-dropzone-hint">
+            Accepted: PDF, PNG, JPG, JPEG · Max 10 MB per file · Multiple files allowed
+          </p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept={ACCEPTED_EXTENSIONS.join(",")}
+            onChange={handleFileInputChange}
+            className="vault-file-input"
+          />
+        </div>
+      )}
 
       {uploadingCount > 0 && <p className="vault-status vault-status--loading">Uploading {uploadingCount} file{uploadingCount === 1 ? "" : "s"}…</p>}
       {successMessage && <p className="vault-status vault-status--success">{successMessage}</p>}
@@ -239,11 +253,13 @@ export default function DocumentVault() {
             <button
               className="vault-delete-btn"
               onClick={() => handleDelete(doc)}
-              disabled={!TERMINAL_STATUSES.has(doc.status)}
+              disabled={DEMO_READ_ONLY || !TERMINAL_STATUSES.has(doc.status)}
               title={
-                TERMINAL_STATUSES.has(doc.status)
-                  ? undefined
-                  : "Still processing — delete becomes available once it finishes."
+                DEMO_READ_ONLY
+                  ? "Deletions are disabled in the public demo."
+                  : TERMINAL_STATUSES.has(doc.status)
+                    ? undefined
+                    : "Still processing — delete becomes available once it finishes."
               }
               type="button"
             >

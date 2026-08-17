@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "./api/client";
+import { API_BASE_URL, DEMO_READ_ONLY } from "./api/client";
 import Chat from "./Chat";
 import Dashboard from "./Dashboard";
 import DocumentVault from "./DocumentVault";
@@ -34,6 +34,16 @@ function App() {
 
   return (
     <main>
+      {DEMO_READ_ONLY && (
+        <div className="demo-banner" role="note">
+          <span className="demo-banner-badge">Public demo</span>
+          <span>
+            This deployment uses preloaded synthetic documents only. Uploads and deletions are
+            disabled here to keep the shared demo data intact for every visitor.
+          </span>
+        </div>
+      )}
+
       <header style={{ padding: "3rem 1.5rem 0", textAlign: "center" }}>
         <h1>Proofly</h1>
         <p>Immigration clarity, grounded in your documents</p>

@@ -1,6 +1,8 @@
 import { resolveApiBaseUrl } from "./resolveApiBaseUrl";
+import { resolveDemoReadOnly } from "./resolveDemoReadOnly";
 
 export const API_BASE_URL = resolveApiBaseUrl(import.meta.env);
+export const DEMO_READ_ONLY = resolveDemoReadOnly(import.meta.env);
 
 export class ApiError extends Error {
   status: number;

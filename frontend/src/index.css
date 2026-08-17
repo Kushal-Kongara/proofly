@@ -14,6 +14,32 @@ body {
   color: #111827;
 }
 
+.demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.65rem 1.5rem;
+  background-color: #eef2ff;
+  color: #3730a3;
+  border-bottom: 1px solid #c7d2fe;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.demo-banner-badge {
+  flex-shrink: 0;
+  background-color: #4f46e5;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+}
+
 .app-nav {
   display: flex;
   justify-content: center;

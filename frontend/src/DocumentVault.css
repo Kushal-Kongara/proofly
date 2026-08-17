@@ -31,6 +31,17 @@
   background-color: #f5f5ff;
 }
 
+.vault-dropzone--disabled {
+  cursor: default;
+  background-color: #f8fafc;
+  border-style: solid;
+  border-color: #e2e8f0;
+}
+
+.vault-dropzone--disabled .vault-dropzone-title {
+  color: #64748b;
+}
+
 .vault-dropzone-title {
   font-weight: 600;
   margin: 0 0 0.35rem;

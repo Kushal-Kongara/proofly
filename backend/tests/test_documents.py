@@ -8,8 +8,9 @@ import hashlib
 import pytest
 from fastapi.testclient import TestClient
 
+from app.config import settings
 from app.main import app
-from app.routers.documents import get_supermemory_service
+from app.routers.documents import DEMO_READ_ONLY_MESSAGE, get_supermemory_service
 from app.schemas.vault_document import DocumentProcessingStatus, VaultDocument
 from app.services.supermemory_service import (
     SupermemoryConfigurationError,
@@ -206,3 +207,81 @@ def test_delete_document_success_returns_204(client: TestClient, fake_service: F
 
     assert response.status_code == 204
     assert fake_service.delete_calls == ["sm_doc_1"]
+
+
+# --- Phase 7B: public-demo read-only hardening -----------------------------
+
+
+def test_demo_read_only_defaults_to_false():
+    """Local dev and the test suite must see normal read/write behavior
+    unless DEMO_READ_ONLY is explicitly set.
+    """
+    assert settings.demo_read_only is False
+
+
+@pytest.fixture
+def demo_read_only():
+    settings.demo_read_only = True
+    yield
+    settings.demo_read_only = False
+
+
+def test_upload_returns_403_in_demo_read_only_without_calling_supermemory(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only
+):
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("Maya_Patel_Resume.pdf", PDF_BYTES, "application/pdf")},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert fake_service.upload_calls == []
+
+
+def test_delete_returns_403_in_demo_read_only_without_calling_supermemory(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only
+):
+    response = client.delete("/api/documents/sm_doc_1")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert fake_service.delete_calls == []
+
+
+def test_list_documents_still_works_in_demo_read_only(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only
+):
+    fake_service.list_result = [
+        VaultDocument(
+            id="sm_doc_1",
+            filename="Maya_Patel_Resume.pdf",
+            content_type="application/pdf",
+            status=DocumentProcessingStatus.DONE,
+        )
+    ]
+
+    response = client.get("/api/documents")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+
+def test_document_status_still_works_in_demo_read_only(client: TestClient, demo_read_only):
+    class StatusOnlyFakeService(FakeSupermemoryService):
+        async def get_document_status(self, document_id: str) -> VaultDocument:
+            return VaultDocument(
+                id=document_id,
+                filename="Maya_Patel_Resume.pdf",
+                content_type="application/pdf",
+                status=DocumentProcessingStatus.DONE,
+            )
+
+    app.dependency_overrides[get_supermemory_service] = lambda: StatusOnlyFakeService()
+    try:
+        response = client.get("/api/documents/sm_doc_1/status")
+    finally:
+        app.dependency_overrides.pop(get_supermemory_service, None)
+
+    assert response.status_code == 200
+    assert response.json()["id"] == "sm_doc_1"

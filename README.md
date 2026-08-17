@@ -4,6 +4,20 @@ Proofly is an AI immigration document and O-1 evidence copilot built for Open At
 
 **Informational support only — not legal advice.** See `docs/PRODUCT_SPEC.md`.
 
+**Live demo:** https://proofly-web.onrender.com
+
+This deployment is a **read-only public demo** preloaded with synthetic
+documents only (the fictional "Maya Patel" profile — see
+`sample_documents/`). Uploading and deleting documents are disabled there;
+a banner on every page explains this, and the Document Vault's upload
+controls are hidden and delete buttons disabled accordingly (see
+`docs/DEPLOYMENT.md`'s "Public-demo read-only mode" section for the exact
+mechanism). Everything else — document analysis, the O-1A planner,
+grounded chat, and Official Updates — works normally against the preloaded
+documents. **Never upload a real person's real immigration documents to
+this or any deployment of this project** — it has no authentication and no
+per-user data isolation.
+
 ## Hackathon Scope
 
 - Immigration document vault

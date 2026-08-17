@@ -22,6 +22,18 @@ from app.services.supermemory_service import (
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
 
+DEMO_READ_ONLY_MESSAGE = "Uploads and deletions are disabled in the public demo."
+
+
+def _reject_if_demo_read_only() -> None:
+    """Public-demo hardening (Phase 7B): refuse a write before ever calling
+    Supermemory, so an anonymous visitor to the deployed demo can't mutate
+    the one shared container. Listing and status checks are unaffected.
+    """
+    if settings.demo_read_only:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=DEMO_READ_ONLY_MESSAGE)
+
+
 # extension -> allowed declared MIME type(s). Both must match for a file to be accepted.
 _ALLOWED_TYPES: dict[str, set[str]] = {
     ".pdf": {"application/pdf"},
@@ -81,6 +93,8 @@ async def upload_document(
     file: UploadFile,
     service: SupermemoryService = Depends(get_supermemory_service),
 ) -> VaultDocument:
+    _reject_if_demo_read_only()
+
     content = await file.read()
     _validate_upload(file.filename or "", file.content_type, len(content))
 
@@ -135,6 +149,8 @@ async def delete_document(
     (it can't be deleted mid-pipeline) — retry after its status reaches
     'done' or 'failed'. Returns 404 if the ID doesn't exist.
     """
+    _reject_if_demo_read_only()
+
     try:
         await service.delete_document(document_id)
     except (
