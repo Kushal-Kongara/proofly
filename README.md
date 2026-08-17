@@ -246,12 +246,21 @@ The in-memory cache (keyed by category + time range) is not shared across
 worker processes and is lost on restart — same accepted prototype
 limitation as the Phase 3/4 in-process stores.
 
+## Deployment
+
+Render Blueprint at `render.yaml` (repo root) deploys `proofly-api`
+(FastAPI backend) and `proofly-web` (static frontend build) as two
+services. See `docs/DEPLOYMENT.md` for the full runbook — Blueprint steps,
+exact environment-variable names, `CORS_ORIGINS` format, smoke-test and
+pre-demo checklists, rollback, and why the backend must stay at one worker.
+
 ## Project Layout
 
 ```
 backend/              FastAPI app, Pydantic schemas, Supermemory + Featherless services, tests
 frontend/              React + TypeScript + Vite app (Dashboard + Document Vault pages)
-docs/                   Product spec and architecture docs
+docs/                   Product spec, architecture, and deployment docs
 sample_documents/       Synthetic demo data (Maya Patel, fictional) + generated demo PDFs
 scripts/                Synthetic PDF generator
+render.yaml             Render Blueprint (backend + frontend services)
 ```

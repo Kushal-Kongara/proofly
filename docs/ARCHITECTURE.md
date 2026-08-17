@@ -864,6 +864,21 @@ rule) reflect `cache_hit`/`retrieved_at`. "Official government sources
 only" and the fixed disclaimer are always visible. No Featherless call is
 made anywhere on this page — see "Why `include_answer=False`" above.
 
+## Phase 7A (this build)
+
+Render Blueprint deployment (`render.yaml`, repo root) — `proofly-api`
+(Python web service, `--workers 1`, required by the in-process Phase
+3/4/6 stores above — not just cost) and `proofly-web` (static Vite build).
+Full runbook, exact environment-variable names, `CORS_ORIGINS` format, and
+smoke-test/warm-up/rollback checklists: `docs/DEPLOYMENT.md`.
+
+`frontend/src/api/resolveApiBaseUrl.ts` is the single place that decides
+when falling back to `http://localhost:8000` is safe: only in Vite dev
+mode. Both `frontend/src/api/client.ts` (runtime) and
+`frontend/vite.config.ts` (build time, via `loadEnv`) call it, so a
+production build with no `VITE_API_BASE_URL` fails the build itself
+instead of silently shipping a bundle pointed at localhost.
+
 ## Future Responsibilities of Each Service
 
 ### FastAPI backend

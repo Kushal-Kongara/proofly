@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "./api/client";
 import Chat from "./Chat";
 import Dashboard from "./Dashboard";
 import DocumentVault from "./DocumentVault";
@@ -7,8 +8,6 @@ import Updates from "./Updates";
 
 type BackendStatus = "checking" | "connected" | "disconnected";
 type Page = "dashboard" | "documents" | "o1plan" | "chat" | "updates";
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
 function App() {
   const [status, setStatus] = useState<BackendStatus>("checking");

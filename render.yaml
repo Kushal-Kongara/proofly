@@ -1,0 +1,85 @@
+# Render Blueprint for Proofly (Phase 7A — deployment readiness).
+#
+# This file describes infrastructure only. No secret VALUES live here —
+# every credential is `sync: false`, meaning it must be set once in the
+# Render dashboard per environment and is never read from this repo or from
+# the local .env file. See docs/DEPLOYMENT.md for the full deploy runbook,
+# exact environment-variable names, and the CORS_ORIGINS format.
+#
+# Both services default to autoDeployTrigger: commit — Render redeploys on
+# every push to the connected branch. Disable in the dashboard if manual
+# control is preferred during judging.
+
+services:
+  # --- Backend: FastAPI (app/main.py) ---------------------------------
+  - type: web
+    name: proofly-api
+    runtime: python
+    region: oregon
+    plan: starter
+    rootDir: backend
+    numInstances: 1
+    autoDeployTrigger: commit
+    buildCommand: pip install -r requirements.txt
+    # --workers 1 is required, not just a cost choice: the Phase 3 analysis
+    # store, Phase 4 O-1A assessment store, and Phase 6 updates cache are
+    # all in-process Python variables (see docs/ARCHITECTURE.md's
+    # "In-process ... store (accepted limitation)" sections). A second
+    # worker would be a second, independent copy of that state.
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    # Side-effect-free — app/main.py's /health handler returns a fixed
+    # dict and never calls Featherless, Supermemory, or Tavily.
+    healthCheckPath: /health
+    envVars:
+      # Pinned to the exact Python 3.13 patch release this project is
+      # developed and tested against (backend/.venv). Never 3.14 — some
+      # pinned dependency wheels in requirements.txt aren't available for
+      # it yet.
+      - key: PYTHON_VERSION
+        value: 3.13.8
+      - key: APP_ENV
+        value: production
+      # Secrets — set once per environment in the Render dashboard, never
+      # committed, never copied from the local .env file.
+      - key: FEATHERLESS_API_KEY
+        sync: false
+      - key: SUPERMEMORY_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      # Not a secret, but deployment-specific (must be the deployed
+      # frontend's exact origin) — set once per environment, never copied
+      # from local .env. See docs/DEPLOYMENT.md for the exact format
+      # app/config.py's cors_origin_list parser expects.
+      - key: CORS_ORIGINS
+        sync: false
+      # Non-secret application defaults (app/config.py) that Render would
+      # otherwise silently omit from the deployed process's environment.
+      # Safe to keep at their known-good defaults; override only if the
+      # underlying Featherless model/base URL or Supermemory demo
+      # container changes.
+      - key: FEATHERLESS_BASE_URL
+        value: https://api.featherless.ai/v1
+      - key: FEATHERLESS_MODEL
+        value: deepseek-ai/DeepSeek-V3.2
+      - key: SUPERMEMORY_CONTAINER_TAG
+        value: proofly_demo_maya
+
+  # --- Frontend: static React/Vite build (frontend/src) ---------------
+  - type: web
+    name: proofly-web
+    runtime: static
+    rootDir: frontend
+    autoDeployTrigger: commit
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    # Single-page app with in-memory tab state (App.tsx's `page` state) and
+    # no client-side router/deep links — every route is `/`, so there is no
+    # sub-path that needs an SPA catch-all rewrite to index.html.
+    envVars:
+      # Backend API keys are proxied through proofly-api and must never
+      # exist in frontend configuration — only the backend's public URL is
+      # needed here. Deployment-specific — set once per environment in the
+      # Render dashboard after proofly-api's URL is known.
+      - key: VITE_API_BASE_URL
+        sync: false
