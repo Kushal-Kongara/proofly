@@ -1,0 +1,627 @@
+/* American Dream Editorial Graphic Style - Inspired by Dads / Rami Niemi Reference */
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
+
+.ad-landing-root {
+  min-height: 100vh;
+  background-color: #fafafa;
+  color: #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Full Viewport Height Hero (100vh) */
+.ad-hero-section {
+  min-height: 100vh;
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .ad-hero-section {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+  }
+}
+
+/* Left Hero Block: Vibrant Royal Blue Panel with Character Art */
+.ad-hero-left {
+  background-color: #1e50e6;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem;
+  overflow: hidden;
+}
+
+.ad-brand-title {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 4rem;
+  font-weight: 400;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.ad-hero-art-container {
+  max-width: 480px;
+  margin: auto;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  border: 4px solid #ffffff;
+  z-index: 5;
+}
+
+.ad-hero-art-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Right Hero Block: Off-white Editorial Content Panel */
+.ad-hero-right {
+  background-color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.5rem 3rem;
+  z-index: 10;
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .ad-hero-right {
+    padding: 2.5rem 1.75rem;
+  }
+}
+
+/* Minimalist Right Navbar - Centered */
+.ad-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.ad-nav-link {
+  background: none;
+  border: none;
+  color: #475569;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  text-decoration: none;
+  position: relative;
+}
+
+.ad-nav-link:hover {
+  color: #1e50e6;
+}
+
+.ad-nav-link-accent {
+  color: #1e50e6;
+  font-weight: 700;
+}
+
+/* Main Editorial Hero Text */
+.ad-hero-main-content {
+  margin: auto 0;
+  padding: 2rem 0;
+}
+
+.ad-badge-tag {
+  display: inline-block;
+  background: #e0e7ff;
+  color: #1e50e6;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+}
+
+/* Larger Headline Typography */
+.ad-hero-h1 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 5.2rem;
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -0.05em;
+  color: #0f172a;
+  margin: 0 0 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .ad-hero-h1 {
+    font-size: 2.8rem;
+  }
+}
+
+.ad-hero-desc {
+  font-size: 1.15rem;
+  color: #475569;
+  line-height: 1.65;
+  margin: 0 0 2.25rem;
+  max-width: 560px;
+}
+
+.ad-hero-cta-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* Blocky Yellow Action Button */
+.ad-btn-yellow {
+  background-color: #facc15;
+  color: #0f172a;
+  border: 2px solid #0f172a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 0.95rem 2.5rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #0f172a;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ad-btn-yellow:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #0f172a;
+  background-color: #fde047;
+}
+
+/* Hero Bottom Scroll Hint - Centered in Right Component */
+.ad-scroll-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0.5rem 0;
+  margin: 0 auto;
+  text-align: center;
+  transition: color 0.15s ease;
+}
+
+.ad-scroll-hint:hover {
+  color: #1e50e6;
+}
+
+/* Checkerboard Block 2: O-1 Section */
+.ad-split-block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 540px;
+}
+
+@media (max-width: 900px) {
+  .ad-split-block {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ad-split-left-text {
+  background-color: #ffffff;
+  padding: 4rem 3.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .ad-split-left-text {
+    padding: 3rem 1.75rem;
+  }
+}
+
+.ad-split-h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 3.2rem;
+  font-weight: 400;
+  line-height: 1.15;
+  color: #0f172a;
+  margin: 0 0 1.25rem;
+}
+
+.ad-split-quote {
+  font-size: 1.1rem;
+  color: #475569;
+  line-height: 1.7;
+  font-style: italic;
+  border-left: 4px solid #1e50e6;
+  padding-left: 1.25rem;
+  margin: 0 0 2rem;
+}
+
+.ad-split-right-purple {
+  background-color: #d8b4fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.ad-character-card-wrapper {
+  max-width: 440px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border: 4px solid #0f172a;
+}
+
+.ad-character-art-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Capabilities Grid Section - Colorful Modern Minimal Cards */
+.ad-capabilities-section {
+  padding: 5.5rem 3.5rem;
+  background-color: #fafafa;
+}
+
+@media (max-width: 900px) {
+  .ad-capabilities-section {
+    padding: 3.5rem 1.5rem;
+  }
+}
+
+.ad-capabilities-header {
+  margin-bottom: 3.5rem;
+}
+
+.ad-capabilities-h2 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin: 0 0 0.75rem;
+}
+
+.ad-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.ad-feature-card {
+  border: 2px solid #0f172a;
+  border-radius: 20px;
+  padding: 2.25rem 2rem;
+  box-shadow: 4px 4px 0px #0f172a;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-feature-card:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 7px 7px 0px #0f172a;
+}
+
+.ad-card-yellow {
+  background-color: #fef08a;
+}
+
+.ad-card-cyan {
+  background-color: #e0e7fe;
+}
+
+.ad-card-purple {
+  background-color: #f3e8ff;
+}
+
+.ad-card-green {
+  background-color: #dcfce7;
+}
+
+.ad-card-rose {
+  background-color: #ffe4e6;
+}
+
+.ad-card-h3 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.75rem;
+}
+
+.ad-card-p {
+  font-size: 0.98rem;
+  color: #1e293b;
+  line-height: 1.6;
+  margin: 0 0 1.75rem;
+  flex-grow: 1;
+}
+
+.ad-card-action-btn {
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.7rem 1.4rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ad-card-action-btn:hover {
+  background: #1e50e6;
+}
+
+/* FAQ Section */
+.ad-faq-section {
+  padding: 4rem 3.5rem 5rem;
+  background-color: #ffffff;
+  border-top: 2px solid #e2e8f0;
+}
+
+@media (max-width: 900px) {
+  .ad-faq-section {
+    padding: 3rem 1.5rem 4rem;
+  }
+}
+
+.ad-faq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 1.75rem;
+  margin-top: 2.5rem;
+}
+
+@media (max-width: 500px) {
+  .ad-faq-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ad-faq-item {
+  background: #f8fafc;
+  border: 2px solid #0f172a;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 3px 3px 0px #0f172a;
+}
+
+.ad-faq-q {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.5rem;
+}
+
+.ad-faq-a {
+  font-size: 0.92rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Redesigned Premium Footer Card matching reference mockup */
+.ad-footer-section {
+  padding: 3rem 3.5rem 4rem;
+  background-color: #fafafa;
+}
+
+@media (max-width: 900px) {
+  .ad-footer-section {
+    padding: 2rem 1.25rem 3rem;
+  }
+}
+
+.ad-footer-container {
+  background-color: #ffffff;
+  border: 2px solid #0f172a;
+  border-radius: 36px;
+  padding: 4rem 4rem 2rem;
+  box-shadow: 6px 6px 0px #0f172a;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .ad-footer-container {
+    padding: 2.5rem 1.75rem 1.5rem;
+    border-radius: 24px;
+  }
+}
+
+.ad-footer-top-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 2.5rem;
+  margin-bottom: 3.5rem;
+}
+
+@media (max-width: 1024px) {
+  .ad-footer-top-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .ad-footer-top-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ad-footer-col--main {
+  padding-right: 1.5rem;
+}
+
+.ad-footer-brand-heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.4;
+  margin: 0 0 1rem;
+}
+
+.ad-footer-disclaimer {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.ad-footer-col-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 1.1rem;
+}
+
+.ad-footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ad-footer-links button,
+.ad-footer-links span {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.15s ease;
+}
+
+.ad-footer-links button:hover {
+  color: #1e50e6;
+}
+
+.ad-footer-col--cta {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ad-footer-action-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ad-footer-cta-link {
+  border: 2px solid #0f172a;
+  border-radius: 9999px;
+  padding: 0.55rem 1.15rem;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-shadow: 3px 3px 0px #0f172a;
+  transition: all 0.15s ease;
+  width: fit-content;
+}
+
+.ad-footer-cta-link:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px #0f172a;
+}
+
+.ad-footer-cta-link--yellow {
+  background-color: #facc15;
+  color: #0f172a;
+}
+
+.ad-footer-cta-link--black {
+  background-color: #0f172a;
+  color: #ffffff;
+}
+
+.ad-arrow-circle {
+  font-size: 0.85rem;
+}
+
+.ad-footer-action-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* Giant Brand Typography Banner */
+.ad-footer-giant-logo {
+  text-align: center;
+  margin: 2rem 0 1rem;
+  line-height: 0.85;
+  overflow: hidden;
+  user-select: none;
+}
+
+.ad-footer-giant-logo span {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 13.5vw;
+  font-weight: 400;
+  color: #0f172a;
+  letter-spacing: -0.06em;
+  display: block;
+  transform: translateY(0.08em);
+}
+
+@media (min-width: 1400px) {
+  .ad-footer-giant-logo span {
+    font-size: 12rem;
+  }
+}
+
+/* Bottom Bar */
+.ad-footer-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 2px solid #e2e8f0;
+  padding-top: 1.25rem;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 600;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}

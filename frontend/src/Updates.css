@@ -1,7 +1,8 @@
+/* Premium Updates Page with Home Page Color Palette & Priority Badges */
+
 .updates-page {
-  max-width: 860px;
-  margin: 2rem auto 4rem;
-  padding: 0 1.5rem;
+  max-width: 960px;
+  margin: 0 auto;
   text-align: left;
 }
 
@@ -11,163 +12,222 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .updates-header h2 {
-  margin: 0 0 0.2rem;
-  color: #111827;
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 900;
+  margin: 0 0 0.3rem;
+  color: #0f172a;
+  letter-spacing: -0.02em;
 }
 
 .updates-subtitle {
   margin: 0;
-  color: #6b7280;
-  font-size: 0.9rem;
-  max-width: 46ch;
+  color: #475569;
+  font-size: 0.95rem;
+  max-width: 50ch;
+  line-height: 1.5;
 }
 
 .updates-official-only-badge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #4338ca;
-  background-color: #eef2ff;
-  border-radius: 999px;
-  padding: 0.3rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #1e50e6;
+  background-color: #e0e7ff;
+  border: 2px solid #0f172a;
+  border-radius: 9999px;
+  padding: 0.4rem 0.95rem;
   white-space: nowrap;
+  box-shadow: 2px 2px 0px #0f172a;
 }
 
 .updates-controls {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  margin-bottom: 1.25rem;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
 }
 
 .updates-control-group {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.65rem;
   flex-wrap: wrap;
 }
 
+/* Redesigned Filter Buttons matching Home Page style */
 .updates-control-btn {
-  border: 1px solid #d1d5db;
-  background-color: #fff;
-  color: #374151;
-  border-radius: 999px;
-  padding: 0.4rem 0.9rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+  border: 2px solid #0f172a;
+  background-color: #ffffff;
+  color: #0f172a;
+  border-radius: 9999px;
+  padding: 0.5rem 1.15rem;
+  font-family: var(--font-heading);
+  font-size: 0.88rem;
+  font-weight: 800;
   cursor: pointer;
+  box-shadow: 2px 2px 0px #0f172a;
+  transition: all 0.15s ease;
 }
 
 .updates-control-btn:hover {
-  background-color: #f9fafb;
+  background-color: #f1f5f9;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
 }
 
 .updates-control-btn--active {
-  border-color: #4f46e5;
-  background-color: #4f46e5;
-  color: #fff;
+  background-color: #facc15 !important;
+  color: #0f172a !important;
+  border-color: #0f172a !important;
+  box-shadow: 3px 3px 0px #0f172a !important;
 }
 
 .updates-status {
-  margin: 0.5rem 0;
-  padding: 0.6rem 0.9rem;
-  border-radius: 8px;
+  margin: 0.75rem 0;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
   font-size: 0.9rem;
+  font-weight: 700;
+  border: 2px solid #0f172a;
 }
 
 .updates-status--loading {
-  background-color: #eef2ff;
-  color: #4338ca;
+  background-color: #e0e7ff;
+  color: #1e50e6;
+  box-shadow: 3px 3px 0px #0f172a;
 }
 
 .updates-status--error {
-  background-color: #fef2f2;
-  color: #b91c1c;
+  background-color: #ffe4e6;
+  color: #9f1239;
+  box-shadow: 3px 3px 0px #0f172a;
 }
 
 .updates-meta-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  font-size: 0.78rem;
-  color: #6b7280;
-  margin-bottom: 0.9rem;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  color: #64748b;
+  margin-bottom: 1.25rem;
 }
 
 .updates-cached-badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #92400e;
-  background-color: #fef3c7;
-  border-radius: 999px;
-  padding: 0.15rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #854d0e;
+  background-color: #fef9c3;
+  border: 1px solid #0f172a;
+  border-radius: 9999px;
+  padding: 0.2rem 0.65rem;
 }
 
 .updates-empty {
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.92rem;
 }
 
 .updates-results {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1.25rem;
 }
 
 .updates-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background-color: #fafafa;
-  padding: 1rem 1.15rem;
+  border: 2px solid #0f172a;
+  border-radius: 20px;
+  background-color: #ffffff;
+  padding: 1.4rem 1.6rem;
+  box-shadow: 4px 4px 0px #0f172a;
+  transition: all 0.2s ease;
+}
+
+.updates-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #0f172a;
+}
+
+.updates-card--priority {
+  background-color: #fffbeb;
+  border-color: #0f172a;
 }
 
 .updates-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.updates-card-badges {
+  display: flex;
+  align-items: center;
   gap: 0.6rem;
-  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Priority News Symbol Badge */
+.updates-priority-badge {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  color: #92400e;
+  background-color: #fef08a;
+  border: 2px solid #0f172a;
+  border-radius: 9999px;
+  padding: 0.25rem 0.7rem;
+  box-shadow: 2px 2px 0px #0f172a;
 }
 
 .updates-domain-badge {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #166534;
-  background-color: #dcfce7;
-  border-radius: 999px;
-  padding: 0.2rem 0.6rem;
+  letter-spacing: 0.04em;
+  color: #0f766e;
+  background-color: #ccfbf1;
+  border: 1px solid #0f172a;
+  border-radius: 9999px;
+  padding: 0.25rem 0.65rem;
 }
 
 .updates-date {
-  font-size: 0.78rem;
-  color: #6b7280;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 600;
 }
 
 .updates-card-title {
-  margin: 0 0 0.4rem;
-  font-size: 1rem;
-  color: #111827;
+  font-family: var(--font-heading);
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .updates-card-snippet {
-  margin: 0 0 0.7rem;
-  font-size: 0.88rem;
-  line-height: 1.5;
-  color: #374151;
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: #334155;
 }
 
 .updates-card-link {
-  display: inline-block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #4338ca;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #1e50e6;
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 
 .updates-card-link:hover {
+  color: #1d4ed8;
   text-decoration: underline;
 }

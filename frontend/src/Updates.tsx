@@ -5,20 +5,27 @@ import "./Updates.css";
 
 const CATEGORY_OPTIONS: { value: UpdateCategory; label: string }[] = [
   { value: "f1_opt", label: "F-1 / OPT" },
-  { value: "o1a", label: "O-1A" },
-  { value: "general", label: "General USCIS" },
+  { value: "o1a", label: "O-1A Extraordinary" },
+  { value: "general", label: "General USCIS Policy" },
 ];
 
 const TIME_RANGE_OPTIONS: { value: UpdateTimeRange; label: string }[] = [
-  { value: "month", label: "Past month" },
-  { value: "year", label: "Past year" },
+  { value: "month", label: "Past Month" },
+  { value: "year", label: "Past Year" },
 ];
 
-function ResultCard({ result }: { result: ImmigrationUpdateResult }) {
+function ResultCard({ result, isPriority }: { result: ImmigrationUpdateResult; isPriority: boolean }) {
   return (
-    <div className="updates-card">
+    <div className={`updates-card${isPriority ? " updates-card--priority" : ""}`}>
       <div className="updates-card-header">
-        <span className="updates-domain-badge">{result.official_domain}</span>
+        <div className="updates-card-badges">
+          {isPriority && (
+            <span className="updates-priority-badge">
+              ⚡ PRIORITY NEWS
+            </span>
+          )}
+          <span className="updates-domain-badge">{result.official_domain}</span>
+        </div>
         {result.published_date && <span className="updates-date">{formatDateOnly(result.published_date)}</span>}
       </div>
       <h3 className="updates-card-title">{result.title}</h3>
@@ -65,10 +72,10 @@ export default function Updates() {
     <section className="updates-page">
       <div className="updates-header">
         <div>
-          <h2>Official Updates</h2>
-          <p className="updates-subtitle">Search current official government immigration sources.</p>
+          <h2>Official Policy Radar</h2>
+          <p className="updates-subtitle">Real-time official US government immigration notices strictly from USCIS, ICE, and State.gov</p>
         </div>
-        <span className="updates-official-only-badge">Official government sources only</span>
+        <span className="updates-official-only-badge">Verified Government Sources Only</span>
       </div>
 
       <div className="updates-controls">
@@ -98,7 +105,7 @@ export default function Updates() {
         </div>
       </div>
 
-      {loading && <p className="updates-status updates-status--loading">Searching official sources…</p>}
+      {loading && <p className="updates-status updates-status--loading">Searching official government repositories…</p>}
       {errorMessage && <p className="updates-status updates-status--error">{errorMessage}</p>}
 
       {!loading && !errorMessage && response && (
@@ -112,8 +119,8 @@ export default function Updates() {
             <p className="updates-empty">No official results found for this category and time range.</p>
           ) : (
             <div className="updates-results">
-              {response.results.map((result) => (
-                <ResultCard result={result} key={result.id} />
+              {response.results.map((result, idx) => (
+                <ResultCard result={result} key={result.id} isPriority={idx === 0} />
               ))}
             </div>
           )}

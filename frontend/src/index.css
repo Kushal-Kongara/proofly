@@ -1,19 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap');
+
 :root {
   color-scheme: light;
-  font-family: system-ui, -apple-system, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-heading: 'Plus Jakarta Sans', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+
+  /* Color System matching Landing Page */
+  --color-blue-primary: #1e50e6;
+  --color-blue-dark: #1e40af;
+  --color-blue-light: #e0e7ff;
+
+  --color-yellow: #facc15;
+  --color-purple: #d8b4fe;
+  --color-cyan: #e0f2fe;
+  --color-green: #dcfce7;
+  --color-rose: #ffe4e6;
+
+  --color-bg-main: #fafafa;
+  --color-bg-card: #ffffff;
+  --color-text-dark: #0f172a;
+  --color-text-muted: #64748b;
+
+  --border-dark: 2px solid #0f172a;
+  --shadow-block: 4px 4px 0px #0f172a;
+  --shadow-block-hover: 6px 6px 0px #0f172a;
 }
 
-/* Explicit default text/background: without this, a browser/OS dark
-   preference flips the inherited default text color toward white while
-   every card in this app has an explicit white/light background — that
-   combination is invisible. Every card component still sets its own
-   colors; this is only the fallback the rest of the app inherits from. */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  background-color: #ffffff;
-  color: #111827;
+  font-family: var(--font-body);
+  background-color: var(--color-bg-main);
+  color: var(--color-text-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* App Wrapper */
+.app-root-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #fafafa;
+}
+
+/* Boot / Loading Screen with Engaging Facts */
 .backend-boot-screen {
   min-height: 100vh;
   display: flex;
@@ -21,31 +56,41 @@ body {
   justify-content: center;
   padding: 1.5rem;
   text-align: center;
+  background: #1e50e6;
 }
 
 .backend-boot-card {
-  max-width: 420px;
+  max-width: 480px;
+  width: 100%;
+  padding: 3rem 2.25rem;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 3px solid #0f172a;
+  box-shadow: 8px 8px 0px #0f172a;
 }
 
-.backend-boot-card h1 {
-  font-size: 1.4rem;
+.backend-boot-title {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 900;
   margin: 0 0 0.5rem;
-  color: #111827;
+  color: #0f172a;
 }
 
-.backend-boot-card p {
-  color: #6b7280;
-  margin: 0;
+.backend-boot-sub {
+  color: #475569;
+  margin: 0 0 1.5rem;
   line-height: 1.5;
+  font-size: 0.92rem;
 }
 
 .backend-boot-spinner {
-  width: 2.25rem;
-  height: 2.25rem;
-  margin: 0 auto 1.25rem;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1.5rem;
   border-radius: 50%;
-  border: 3px solid #e0e7ff;
-  border-top-color: #4f46e5;
+  border: 4px solid #e0e7ff;
+  border-top-color: #1e50e6;
   animation: backend-boot-spin 0.8s linear infinite;
 }
 
@@ -55,74 +100,180 @@ body {
   }
 }
 
+.backend-boot-fact-box {
+  background: #fef9c3;
+  border: 2px solid #0f172a;
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  box-shadow: 3px 3px 0px #0f172a;
+  text-align: left;
+  animation: fact-fade 0.4s ease-in-out;
+}
+
+@keyframes fact-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.backend-boot-fact-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #1e50e6;
+  letter-spacing: 0.06em;
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.backend-boot-fact-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.45;
+}
+
 .backend-boot-retry-btn {
-  margin-top: 1.25rem;
-  border: none;
-  background-color: #4f46e5;
-  color: #fff;
+  margin-top: 1.5rem;
+  border: 2px solid #0f172a;
+  background-color: #facc15;
+  color: #0f172a;
   font-size: 0.95rem;
-  font-weight: 600;
-  padding: 0.55rem 1.25rem;
-  border-radius: 8px;
+  font-weight: 800;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
   cursor: pointer;
+  box-shadow: 3px 3px 0px #0f172a;
+  transition: all 0.15s ease;
 }
 
 .backend-boot-retry-btn:hover {
-  background-color: #4338ca;
+  background-color: #fde047;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #0f172a;
 }
 
+/* Demo Banner */
 .demo-banner {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
   gap: 0.6rem;
-  padding: 0.65rem 1.5rem;
-  background-color: #eef2ff;
-  color: #3730a3;
-  border-bottom: 1px solid #c7d2fe;
+  padding: 0.6rem 1.5rem;
+  background-color: #e0e7ff;
+  color: #1e50e6;
+  border-bottom: 2px solid #0f172a;
   font-size: 0.88rem;
+  font-weight: 700;
   text-align: center;
 }
 
 .demo-banner-badge {
-  flex-shrink: 0;
-  background-color: #4f46e5;
-  color: #fff;
-  font-weight: 700;
+  background-color: #1e50e6;
+  color: #ffffff;
+  font-weight: 900;
   font-size: 0.72rem;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  padding: 0.2rem 0.55rem;
-  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
 }
 
-.app-nav {
+/* Header & Nav matching Landing Page */
+.app-header-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #ffffff;
+  border-bottom: 2px solid #0f172a;
+  padding: 0.9rem 2rem;
+}
+
+.app-header-container {
+  max-width: 1280px;
+  margin: 0 auto;
   display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  margin: 1.5rem auto 0;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid #e5e7eb;
-  max-width: 860px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
 }
 
-.app-nav-btn {
-  border: none;
+.app-logo-brand {
   background: none;
-  color: #4b5563;
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 0.4rem 0.9rem;
-  border-radius: 8px;
+  border: none;
+  padding: 0;
   cursor: pointer;
 }
 
-.app-nav-btn:hover {
-  background-color: #f3f4f6;
+.app-logo-serif {
+  font-family: var(--font-serif);
+  font-size: 2.2rem;
+  font-weight: 400;
+  color: #1e50e6;
+  letter-spacing: -0.02em;
 }
 
-.app-nav-btn--active {
-  color: #4f46e5;
-  background-color: #eef2ff;
+.app-nav-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.app-nav-pill {
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.app-nav-pill:hover {
+  color: #1e50e6;
+  background-color: #e0e7ff;
+}
+
+.app-nav-pill--active {
+  color: #0f172a !important;
+  background-color: #facc15 !important;
+  border: 2px solid #0f172a;
+  box-shadow: 2px 2px 0px #0f172a;
+}
+
+.app-landing-btn {
+  border: 2px solid #0f172a;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 0.5rem 1.1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #0f172a;
+  transition: all 0.15s ease;
+}
+
+.app-landing-btn:hover {
+  background: #e0e7ff;
+  color: #1e50e6;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px #0f172a;
+}
+
+.app-main-content {
+  max-width: 1280px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 6rem;
+  box-sizing: border-box;
 }
