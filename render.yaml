@@ -16,7 +16,7 @@ services:
     name: proofly-api
     runtime: python
     region: oregon
-    plan: starter
+    plan: free
     rootDir: backend
     numInstances: 1
     autoDeployTrigger: commit
