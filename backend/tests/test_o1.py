@@ -12,7 +12,12 @@ from app import routers
 from app.main import app
 from app.routers.o1 import get_featherless_service, get_supermemory_service
 from app.schemas.common import O1CriterionCode
-from app.schemas.o1_assessment import O1EvidenceItemDraft, O1EvidenceRole, O1LLMAnalysisOutput
+from app.schemas.o1_assessment import (
+    O1CriterionNoteDraft,
+    O1EvidenceItemDraft,
+    O1EvidenceRole,
+    O1LLMAnalysisOutput,
+)
 from app.services.featherless_service import (
     FeatherlessConfigurationError,
     FeatherlessUpstreamError,
@@ -188,6 +193,64 @@ def test_featherless_upstream_failure_returns_502(client: TestClient):
     for _ in _override(supermemory, featherless):
         response = client.post("/api/o1/assessment/run")
         assert response.status_code == 502
+
+
+def _llm_output_with_document_id_leaked_into_narrative_text() -> O1LLMAnalysisOutput:
+    return O1LLMAnalysisOutput(
+        evidence_items=[
+            O1EvidenceItemDraft(
+                title="Award notice (doc_award)",
+                factual_summary="Extracted from doc_award, dated 2024-11-08.",
+                criterion_id=O1CriterionCode.AWARDS,
+                source_document_id="doc_award",
+                source_filename="Maya_Patel_Innovation_Award.pdf",
+                confidence=0.9,
+                evidence_role=O1EvidenceRole.DIRECT_DOCUMENT,
+                limitations=["doc_award does not establish national or international recognition."],
+            )
+        ],
+        criterion_notes=[
+            O1CriterionNoteDraft(
+                criterion_id=O1CriterionCode.AWARDS,
+                why_documents_may_be_relevant="doc_award references an award relevant to this criterion.",
+                what_remains_unproven="doc_award alone does not establish recognition.",
+                suggested_evidence_to_collect=["Independent coverage citing doc_award"],
+            )
+        ],
+    )
+
+
+def test_no_actual_source_document_id_appears_in_o1_narrative_fields(client: TestClient):
+    """Phase 6.1: even if Featherless writes the raw document ID directly
+    into its own narrative text, the API response must never surface it
+    outside the structured `source_document_id` field.
+    """
+    supermemory = FakeSupermemoryService(documents=[_one_completed_document()])
+    featherless = FakeFeatherlessService(result=_llm_output_with_document_id_leaked_into_narrative_text())
+
+    for _ in _override(supermemory, featherless):
+        response = client.post("/api/o1/assessment/run")
+
+        assert response.status_code == 201
+        body = response.json()
+        awards = next(c for c in body["criteria"] if c["definition"]["code"] == "awards")
+        item = awards["evidence_items"][0]
+
+        # Structured field: exact document ID, unchanged.
+        assert item["source_document_id"] == "doc_award"
+
+        narrative_text = " ".join(
+            [
+                item["title"],
+                item["factual_summary"],
+                *item["limitations"],
+                awards["why_documents_may_be_relevant"],
+                awards["what_remains_unproven"],
+                *awards["suggested_evidence_to_collect"],
+            ]
+        )
+        assert "doc_award" not in narrative_text
+        assert "Maya_Patel_Innovation_Award.pdf" in narrative_text
 
 
 def test_no_forbidden_language_anywhere_in_response(client: TestClient):

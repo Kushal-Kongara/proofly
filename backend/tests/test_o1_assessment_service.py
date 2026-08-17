@@ -8,12 +8,14 @@ from datetime import date
 from app.data.o1_criteria import O1_CRITERIA
 from app.schemas.common import O1CriterionCode
 from app.schemas.o1_assessment import (
+    O1CriterionNoteDraft,
     O1CriterionStatus,
     O1EvidenceItemDraft,
     O1EvidenceRole,
     O1LLMAnalysisOutput,
 )
 from app.services.o1_assessment import build_o1_assessment
+from app.services.reference_humanizer import SAFE_FALLBACK_LABEL
 
 AS_OF = date(2026, 8, 15)
 
@@ -249,6 +251,135 @@ def test_disclaimer_text_present_and_no_forbidden_language_anywhere():
 def test_requires_attorney_review_always_true():
     assessment = build_o1_assessment(O1LLMAnalysisOutput(), AS_OF)
     assert all(c.requires_attorney_review is True for c in assessment.criteria)
+
+
+# --- Phase 6.1: human-readable source references only ---------------------
+
+
+def _output_with_document_id_leaked_into_narrative_text(
+    *, source_document_id: str = "doc1", source_filename: str = "Best_Emerging_Researcher_Award.pdf"
+) -> O1LLMAnalysisOutput:
+    return O1LLMAnalysisOutput(
+        evidence_items=[
+            _draft(
+                title=f"Award notice ({source_document_id})",
+                factual_summary=f"Extracted from {source_document_id}, dated 2024-11-08.",
+                criterion_id=O1CriterionCode.AWARDS,
+                source_document_id=source_document_id,
+                source_filename=source_filename,
+                limitations=[f"{source_document_id} does not establish national or international recognition."],
+            )
+        ],
+        criterion_notes=[
+            O1CriterionNoteDraft(
+                criterion_id=O1CriterionCode.AWARDS,
+                why_documents_may_be_relevant=f"{source_document_id} references an award relevant to this criterion.",
+                what_remains_unproven=f"{source_document_id} alone does not establish recognition.",
+                suggested_evidence_to_collect=[f"Independent coverage citing {source_document_id}"],
+            )
+        ],
+    )
+
+
+def test_known_document_id_in_narrative_text_becomes_the_filename():
+    output = _output_with_document_id_leaked_into_narrative_text()
+    assessment = build_o1_assessment(output, AS_OF)
+    awards = next(c for c in assessment.criteria if c.definition.code == O1CriterionCode.AWARDS)
+    item = awards.evidence_items[0]
+
+    for narrative in [
+        item.title,
+        item.factual_summary,
+        *item.limitations,
+        awards.why_documents_may_be_relevant,
+        awards.what_remains_unproven,
+        *awards.suggested_evidence_to_collect,
+    ]:
+        assert "doc1" not in narrative
+        assert "Best_Emerging_Researcher_Award.pdf" in narrative
+
+
+def test_structured_source_document_id_is_never_modified():
+    output = _output_with_document_id_leaked_into_narrative_text()
+    assessment = build_o1_assessment(output, AS_OF)
+    awards = next(c for c in assessment.criteria if c.definition.code == O1CriterionCode.AWARDS)
+
+    assert awards.evidence_items[0].source_document_id == "doc1"
+
+
+def test_unrelated_narrative_text_such_as_dates_and_receipt_numbers_is_untouched():
+    output = O1LLMAnalysisOutput(
+        evidence_items=[
+            _draft(
+                factual_summary="Receipt number MSC2190012345, dated 2024-11-08, unrelated to doc42.",
+                source_document_id="doc1",
+                source_filename="Award.pdf",
+            )
+        ]
+    )
+    assessment = build_o1_assessment(output, AS_OF)
+    awards = next(c for c in assessment.criteria if c.definition.code == O1CriterionCode.AWARDS)
+
+    # "doc42" was never a supplied document ID for this analysis, so it is
+    # left exactly as written — only exact, known IDs are ever replaced.
+    assert awards.evidence_items[0].factual_summary == (
+        "Receipt number MSC2190012345, dated 2024-11-08, unrelated to doc42."
+    )
+
+
+def test_s1_style_id_does_not_accidentally_modify_s10():
+    output = O1LLMAnalysisOutput(
+        evidence_items=[
+            _draft(
+                title="Evidence S1",
+                factual_summary="Referenced in S1 and S10.",
+                criterion_id=O1CriterionCode.AWARDS,
+                source_document_id="S1",
+                source_filename="Award.pdf",
+            ),
+            _draft(
+                title="Evidence S10",
+                factual_summary="Referenced in S1 and S10.",
+                criterion_id=O1CriterionCode.MEMBERSHIP,
+                source_document_id="S10",
+                source_filename="Membership.pdf",
+            ),
+        ]
+    )
+    assessment = build_o1_assessment(output, AS_OF)
+    awards = next(c for c in assessment.criteria if c.definition.code == O1CriterionCode.AWARDS)
+    membership = next(c for c in assessment.criteria if c.definition.code == O1CriterionCode.MEMBERSHIP)
+
+    assert awards.evidence_items[0].factual_summary == "Referenced in Award.pdf and Membership.pdf."
+    assert membership.evidence_items[0].factual_summary == "Referenced in Award.pdf and Membership.pdf."
+
+
+def test_missing_source_filename_falls_back_to_safe_label():
+    output = O1LLMAnalysisOutput(
+        evidence_items=[
+            _draft(
+                title="Reference doc1 for context.",
+                source_document_id="doc1",
+                source_filename="",
+            )
+        ]
+    )
+    assessment = build_o1_assessment(output, AS_OF)
+    awards = next(c for c in assessment.criteria if c.definition.code == O1CriterionCode.AWARDS)
+
+    assert awards.evidence_items[0].title == f"Reference {SAFE_FALLBACK_LABEL} for context."
+    assert "doc1" not in awards.evidence_items[0].title
+
+
+def test_status_calculation_unaffected_by_narrative_humanization():
+    output = _output_with_document_id_leaked_into_narrative_text()
+    assessment = build_o1_assessment(output, AS_OF)
+    awards = next(c for c in assessment.criteria if c.definition.code == O1CriterionCode.AWARDS)
+
+    # Same status as the equivalent evidence in
+    # test_award_without_recognition_evidence_remains_partial — humanizing
+    # the narrative text must never change the deterministic status.
+    assert awards.status == O1CriterionStatus.PARTIAL_SUPPORT_FOUND
 
 
 def test_unmapped_criterion_note_for_criterion_without_evidence_is_ignored_safely():

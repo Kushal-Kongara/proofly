@@ -52,6 +52,7 @@ from app.schemas.o1_assessment import (
     O1Gap,
     O1LLMAnalysisOutput,
 )
+from app.services.reference_humanizer import SAFE_FALLBACK_LABEL, humanize_references
 
 DOCUMENT_COVERAGE_DISCLAIMER = (
     "Document coverage is not a determination that any USCIS criterion is satisfied."
@@ -152,6 +153,36 @@ def _criterion_assessment(
         why_documents_may_be_relevant=why,
         what_remains_unproven=unproven,
         suggested_evidence_to_collect=suggested,
+    )
+
+
+def _humanize_evidence_item(item: O1EvidenceItem, id_to_label: dict[str, str]) -> O1EvidenceItem:
+    """Replace any raw source_document_id the model wrote into its own
+    narrative text (title/factual_summary/limitations) with the document's
+    filename. `source_document_id` itself — the structured field — is never
+    touched here.
+    """
+    return item.model_copy(
+        update={
+            "title": humanize_references(item.title, id_to_label),
+            "factual_summary": humanize_references(item.factual_summary, id_to_label),
+            "limitations": [humanize_references(note, id_to_label) for note in item.limitations],
+        }
+    )
+
+
+def _humanize_criterion_assessment(
+    assessment: O1CriterionAssessment, id_to_label: dict[str, str]
+) -> O1CriterionAssessment:
+    return assessment.model_copy(
+        update={
+            "evidence_items": [_humanize_evidence_item(item, id_to_label) for item in assessment.evidence_items],
+            "why_documents_may_be_relevant": humanize_references(assessment.why_documents_may_be_relevant, id_to_label),
+            "what_remains_unproven": humanize_references(assessment.what_remains_unproven, id_to_label),
+            "suggested_evidence_to_collect": [
+                humanize_references(entry, id_to_label) for entry in assessment.suggested_evidence_to_collect
+            ],
+        }
     )
 
 
@@ -306,6 +337,18 @@ def build_o1_assessment(llm_output: O1LLMAnalysisOutput, as_of_date: date) -> O1
         _criterion_assessment(definition, pairs_by_criterion[definition.code], notes_by_criterion.get(definition.code))
         for definition in O1_CRITERIA
     ]
+
+    # Deterministic backend-boundary enforcement: never let a raw Supermemory
+    # document ID reach user-facing narrative text, even if the model wrote
+    # one directly into a summary/limitation/note despite the prompt
+    # instruction above. Built only from IDs actually supplied for this
+    # analysis (source_document_id is always one of them — enforced by
+    # O1LLMAnalysisOutput's citation-membership validator), so this never
+    # touches unrelated text such as dates or receipt numbers.
+    id_to_label = {
+        item.source_document_id: (item.source_filename or SAFE_FALLBACK_LABEL) for item, _ in materialized
+    }
+    criteria = [_humanize_criterion_assessment(assessment, id_to_label) for assessment in criteria]
 
     counts = Counter(assessment.status for assessment in criteria)
     documented = counts[O1CriterionStatus.DOCUMENTED_SUPPORT_FOUND]

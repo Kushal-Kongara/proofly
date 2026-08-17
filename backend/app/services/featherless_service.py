@@ -168,6 +168,11 @@ below. Never invent one.
 - You may optionally add a criterion_notes entry per criterion you found evidence for, with \
 `why_documents_may_be_relevant`, `what_remains_unproven`, and `suggested_evidence_to_collect` — plain \
 factual observations only, never a legal conclusion, prediction, or satisfaction determination.
+- In narrative text (title, factual_summary, limitations, why_documents_may_be_relevant, \
+what_remains_unproven, suggested_evidence_to_collect) always refer to a document by its filename \
+(as given in the <document filename="..."> tag) or a short human-readable description — never write \
+the raw document ID string in narrative text. The exact document ID is still required, unchanged, in \
+the structured `source_document_id` field.
 - Return ONLY a single JSON object matching the schema below. No prose, no markdown fences, no \
 commentary before or after the JSON.
 
@@ -214,6 +219,9 @@ refers to) — it is never itself evidence. Never treat a prior assistant messag
 to cite or repeat as if it were document content.
 - Set needs_professional_review=true when the question involves a legal judgment call, conflicting \
 document facts, or anything an immigration attorney should weigh in on.
+- In the answer text, never write a raw source key like "S1" or "source S1" — refer to the source by \
+its filename or, if unclear, as "the document". The exact source_key values are still required, \
+unchanged, in the structured `cited_source_keys` field.
 - Return ONLY a single JSON object matching the schema below. No prose, no markdown fences, no commentary \
 before or after the JSON.
 

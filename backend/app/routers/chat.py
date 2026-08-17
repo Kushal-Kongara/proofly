@@ -39,6 +39,7 @@ from app.services.featherless_service import (
     FeatherlessValidationError,
     get_featherless_service,
 )
+from app.services.reference_humanizer import SAFE_FALLBACK_LABEL, humanize_references
 from app.services.supermemory_service import (
     RetrievedSource,
     SupermemoryConfigurationError,
@@ -162,8 +163,18 @@ async def chat(
         for key in llm_output.cited_source_keys
     ]
 
+    # Deterministic backend-boundary enforcement: never let a raw internal
+    # source key (e.g. "S1") reach the user-facing answer, even if the model
+    # wrote one directly into its prose despite the prompt instruction above.
+    # Labels come only from the server-controlled `sources` (never a
+    # model-supplied filename), and only exact, known keys are replaced.
+    label_by_source_key = {
+        source.source_key: (source.filename or SAFE_FALLBACK_LABEL) for source in sources
+    }
+    humanized_answer = humanize_references(llm_output.answer, label_by_source_key)
+
     return ChatResponse(
-        answer=llm_output.answer,
+        answer=humanized_answer,
         answer_mode=ChatAnswerMode.DOCUMENT_GROUNDED,
         citations=citations,
         searched_document_count=searched_document_count,

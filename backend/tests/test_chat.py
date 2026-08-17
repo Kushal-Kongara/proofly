@@ -72,8 +72,13 @@ def _done_document(doc_id: str = "sm_doc_1") -> VaultDocument:
     )
 
 
-def _source(source_key: str = "S1", document_id: str = "doc_ead", content: str = "STEM OPT extension EAD valid 07/01/2025 to 06/30/2027.") -> RetrievedSource:
-    return RetrievedSource(source_key=source_key, document_id=document_id, filename="Maya_Patel_EAD_Summary.pdf", content=content, page_number=None, similarity=0.9)
+def _source(
+    source_key: str = "S1",
+    document_id: str = "doc_ead",
+    filename: str = "Maya_Patel_EAD_Summary.pdf",
+    content: str = "STEM OPT extension EAD valid 07/01/2025 to 06/30/2027.",
+) -> RetrievedSource:
+    return RetrievedSource(source_key=source_key, document_id=document_id, filename=filename, content=content, page_number=None, similarity=0.9)
 
 
 @pytest.fixture
@@ -295,6 +300,91 @@ def test_featherless_upstream_failure_returns_502(client: TestClient):
     for _ in _override(supermemory, featherless):
         response = client.post("/api/chat", json={"question": "q"})
         assert response.status_code == 502
+
+
+# --- Phase 6.1: human-readable source references only ---------------------
+
+
+def test_source_s1_reference_in_answer_becomes_the_filename(client: TestClient):
+    supermemory = FakeSupermemoryService(sources=[_source()])
+    featherless = FakeFeatherlessService(
+        result=FeatherlessChatOutput(
+            answer="Per source S1, your STEM OPT EAD is valid through June 30, 2027.",
+            cited_source_keys=["S1"],
+            insufficient_evidence=False,
+            needs_professional_review=False,
+        )
+    )
+
+    for _ in _override(supermemory, featherless):
+        response = client.post("/api/chat", json={"question": "When does my EAD expire?"})
+
+        assert response.status_code == 200
+        body = response.json()
+        assert "S1" not in body["answer"]
+        assert "source S1" not in body["answer"]
+        assert body["answer"] == "Per source Maya_Patel_EAD_Summary.pdf, your STEM OPT EAD is valid through June 30, 2027."
+        # Structured citation array is untouched by humanization.
+        assert body["citations"][0]["source_key"] == "S1"
+
+
+def test_s1_replacement_does_not_accidentally_modify_s10(client: TestClient):
+    source_1 = _source(source_key="S1", document_id="doc_a", filename="Award.pdf")
+    source_10 = _source(source_key="S10", document_id="doc_b", filename="Membership.pdf")
+    supermemory = FakeSupermemoryService(sources=[source_1, source_10])
+    featherless = FakeFeatherlessService(
+        result=FeatherlessChatOutput(
+            answer="Per S1 and S10, both criteria have supporting evidence.",
+            cited_source_keys=["S1", "S10"],
+            insufficient_evidence=False,
+            needs_professional_review=False,
+        )
+    )
+
+    for _ in _override(supermemory, featherless):
+        response = client.post("/api/chat", json={"question": "q"})
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["answer"] == "Per Award.pdf and Membership.pdf, both criteria have supporting evidence."
+
+
+def test_unrelated_answer_text_is_left_untouched(client: TestClient):
+    supermemory = FakeSupermemoryService(sources=[_source()])
+    featherless = FakeFeatherlessService(
+        result=FeatherlessChatOutput(
+            answer="Your EAD expiration date is June 30, 2027, per the uploaded document.",
+            cited_source_keys=["S1"],
+            insufficient_evidence=False,
+            needs_professional_review=False,
+        )
+    )
+
+    for _ in _override(supermemory, featherless):
+        response = client.post("/api/chat", json={"question": "q"})
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["answer"] == "Your EAD expiration date is June 30, 2027, per the uploaded document."
+
+
+def test_missing_source_filename_uses_safe_fallback_label(client: TestClient):
+    supermemory = FakeSupermemoryService(sources=[_source(filename="")])
+    featherless = FakeFeatherlessService(
+        result=FeatherlessChatOutput(
+            answer="Per S1, your EAD is valid.",
+            cited_source_keys=["S1"],
+            insufficient_evidence=False,
+            needs_professional_review=False,
+        )
+    )
+
+    for _ in _override(supermemory, featherless):
+        response = client.post("/api/chat", json={"question": "q"})
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["answer"] == "Per the cited document, your EAD is valid."
 
 
 def test_no_conversation_is_ever_written_to_supermemory(client: TestClient):
