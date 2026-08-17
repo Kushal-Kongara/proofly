@@ -141,16 +141,12 @@ export default function Chat() {
                 <button
                   key={`sug-${idx}`}
                   type="button"
-                  className="chat-suggestion-card"
+                  className="chat-suggestion-chip"
                   onClick={() => send(s.question)}
                   disabled={loading}
                 >
-                  <div className="chat-suggestion-top">
-                    <span className="chat-suggestion-icon">{s.icon}</span>
-                    <span className="chat-suggestion-tag">{s.tag}</span>
-                  </div>
-                  <h4 className="chat-suggestion-title">{s.title}</h4>
-                  <p className="chat-suggestion-text">"{s.question}"</p>
+                  <span className="chat-suggestion-icon">{s.icon}</span>
+                  <span className="chat-suggestion-chip-text">{s.question}</span>
                 </button>
               ))}
             </div>

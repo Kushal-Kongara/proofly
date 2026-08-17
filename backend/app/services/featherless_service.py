@@ -22,6 +22,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from datetime import date
 from typing import TypeVar
 
 from openai import (
@@ -204,6 +205,12 @@ interpretation of it.
 - If a source shows an I-94 admit-until value of "D/S" (duration of status), never state or imply a \
 fixed expiration date for it.
 - A visa stamp's expiration date is not the same as authorized-stay expiration — never conflate them.
+- Today's date is {today} (ISO format, YYYY-MM-DD). If a source lists more than one validity or \
+authorization period for the same document or category (for example two EAD cards, or two visa \
+validity ranges), identify which single period is currently active as of today — its start date is \
+on or before today and its end date is on or after today — or, if none is active yet, the next \
+upcoming period. Answer using that one period's exact stated date(s) and category name only. Never \
+merge, average, or vaguely restate multiple periods together as one blurred answer.
 - A future-dated invitation, offer, or plan (e.g. a judging invitation dated after today) is evidence of \
 something planned, not something completed — never say it proves the action was completed.
 - Resume/CV content is self-reported by the applicant, not independently verified — say so if relevant.
@@ -241,10 +248,10 @@ def _source_block(source: RetrievedSource) -> str:
 
 
 def _build_chat_messages(
-    question: str, history: list[ChatHistoryMessage], sources: list[RetrievedSource]
+    question: str, history: list[ChatHistoryMessage], sources: list[RetrievedSource], as_of_date: date
 ) -> list[dict[str, str]]:
     schema_json = json.dumps(FeatherlessChatOutput.model_json_schema())
-    system = _CHAT_SYSTEM_PROMPT_TEMPLATE.format(schema_json=schema_json)
+    system = _CHAT_SYSTEM_PROMPT_TEMPLATE.format(schema_json=schema_json, today=as_of_date.isoformat())
     source_keys = ", ".join(source.source_key for source in sources)
 
     messages: list[dict[str, str]] = [{"role": "system", "content": system}]
@@ -341,6 +348,7 @@ class FeatherlessService:
         question: str,
         history: list[ChatHistoryMessage],
         sources: list[RetrievedSource],
+        as_of_date: date,
     ) -> tuple[FeatherlessChatOutput, bool]:
         """One document-grounded chat answer call (Phase 5). Shares the same
         client, shared `_FEATHERLESS_CALL_LOCK`-serialized retry policy,
@@ -364,7 +372,7 @@ class FeatherlessService:
 
         client = self._client()
         valid_source_keys = {source.source_key for source in sources}
-        messages = _build_chat_messages(question, history, sources)
+        messages = _build_chat_messages(question, history, sources, as_of_date)
         logger.info(
             "Featherless chat: %d sources, %d history messages, %d total characters",
             len(sources),

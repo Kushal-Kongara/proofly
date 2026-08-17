@@ -18,6 +18,8 @@ browser sends, never persisted server-side.
 
 from __future__ import annotations
 
+from datetime import date, datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.config import settings
@@ -117,6 +119,8 @@ async def chat(
             detail="No processed documents are available to search.",
         )
 
+    today = _today()
+
     retrieval_query = _build_retrieval_query(request.question, request.history)
 
     try:
@@ -139,6 +143,7 @@ async def chat(
             question=request.question,
             history=request.history,
             sources=sources,
+            as_of_date=today,
         )
     except (FeatherlessConfigurationError, FeatherlessInputTooLargeError, FeatherlessValidationError, FeatherlessUpstreamError) as exc:
         raise _handle_chat_error(exc) from exc
@@ -182,3 +187,7 @@ async def chat(
         model=settings.featherless_model,
         processing=ChatProcessingMetadata(retrieved_source_count=len(sources), repair_attempted=repair_attempted),
     )
+
+
+def _today() -> date:
+    return datetime.now(tz=timezone.utc).date()

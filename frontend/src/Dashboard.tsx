@@ -37,6 +37,19 @@ function daysRemainingLabel(days: number | null, status: TimelineAnalysisEvent["
   return `${days} day${days === 1 ? "" : "s"} remaining`;
 }
 
+const ANALYSIS_LOADING_FACTS: string[] = [
+  "F-1 students get a 60-day grace period after their program end date to leave the US, transfer, or change status.",
+  "Post-completion OPT gives F-1 students up to 12 months of work authorization tied to their degree field.",
+  "STEM OPT extensions add up to 24 additional months for graduates in eligible science, tech, engineering, or math majors.",
+  "An H-1B visa is initially granted for up to 3 years and can be extended to a maximum of 6 years in most cases.",
+  "The O-1A visa has no maximum duration cap — it can be renewed indefinitely in 1-year increments.",
+  "An I-94 arrival record, not the visa stamp, is what actually governs how long you're authorized to stay in the US.",
+  "'Duration of Status' (D/S) means your authorized stay is tied to maintaining student status, not a fixed date.",
+  "A visa stamp's expiration date only controls travel and entry — it does not limit how long you may stay once admitted.",
+  "The H-1B cap-gap rule can automatically extend F-1 status and work authorization while an H-1B change of status is pending.",
+  "Unlike most visas, a 212(e) two-year home residency requirement can affect J-1 visa holders' ability to change status.",
+];
+
 function findCurrentAuthorization(
   authorizations: EmploymentAuthorizationRecord[],
   asOfDate: string,
@@ -60,6 +73,16 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [analyzing, setAnalyzing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [factIndex, setFactIndex] = useState(0);
+
+  useEffect(() => {
+    if (!analyzing) return;
+    setFactIndex(Math.floor(Math.random() * ANALYSIS_LOADING_FACTS.length));
+    const interval = setInterval(() => {
+      setFactIndex((prev) => (prev + 1) % ANALYSIS_LOADING_FACTS.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [analyzing]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -126,6 +149,22 @@ export default function Dashboard() {
 
       {errorMessage && (
         <div className="dashboard-status dashboard-status--error">{errorMessage}</div>
+      )}
+
+      {analyzing && (
+        <div className="analysis-loading-card" role="status" aria-live="polite">
+          <div className="analysis-loading-spinner" />
+          <div className="analysis-loading-body">
+            <h3 className="analysis-loading-title">Running AI Analysis…</h3>
+            <p className="analysis-loading-sub">
+              Scanning your documents and cross-checking dates. Feel free to browse other tabs while this runs.
+            </p>
+            <div className="analysis-loading-fact">
+              <span className="analysis-loading-fact-label">Did you know?</span>
+              <p>{ANALYSIS_LOADING_FACTS[factIndex]}</p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 4 Summary Metric Cards Grid (Vendify style) */}

@@ -31,6 +31,17 @@ const ROLE_LABELS: Record<O1EvidenceItem["evidence_role"], string> = {
   self_reported: "Self-reported (resume/CV)",
 };
 
+const O1_BUILDING_FACTS: string[] = [
+  "The O-1A visa evaluates evidence across eight criteria — you only need to meet 3 of them (or a one-time major achievement).",
+  "Judging others' work — like peer-reviewing papers or serving on a hackathon panel — counts as O-1A evidence, even unpaid.",
+  "Media coverage about your work, not just about you personally, can support the 'published material' criterion.",
+  "A high salary relative to others in your field can serve as standalone O-1A evidence of extraordinary ability.",
+  "Original contributions of major significance can be shown through patents, adopted tools, or widely cited work.",
+  "Membership in associations that require outstanding achievement for admission is its own distinct O-1A criterion.",
+  "Comparable evidence is allowed when a standard criterion doesn't clearly fit your field — it doesn't have to be a perfect match.",
+  "A single internationally recognized award (like an Olympic medal or major industry prize) can satisfy the O-1A standard on its own.",
+];
+
 const PRIORITY_LABELS: Record<"high" | "medium" | "low", string> = {
   high: "High priority",
   medium: "Medium priority",
@@ -122,6 +133,16 @@ export default function O1Plan() {
   const [loadingInitial, setLoadingInitial] = useState(true);
   const [running, setRunning] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [factIndex, setFactIndex] = useState(0);
+
+  useEffect(() => {
+    if (!running) return;
+    setFactIndex(Math.floor(Math.random() * O1_BUILDING_FACTS.length));
+    const interval = setInterval(() => {
+      setFactIndex((prev) => (prev + 1) % O1_BUILDING_FACTS.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [running]);
 
   const load = useCallback(async () => {
     try {
@@ -177,7 +198,21 @@ export default function O1Plan() {
         <p className="o1-plan-hint">Upload documents and wait for them to reach "Ready" before building an evidence plan.</p>
       )}
 
-      {running && <p className="o1-plan-status o1-plan-status--loading">Analyzing documents with Featherless…</p>}
+      {running && (
+        <div className="o1-building-card" role="status" aria-live="polite">
+          <div className="o1-building-spinner" />
+          <div className="o1-building-body">
+            <h3 className="o1-building-title">Building your evidence plan…</h3>
+            <p className="o1-building-sub">
+              Analyzing documents against the eight O-1A criteria. Feel free to browse other tabs while this runs.
+            </p>
+            <div className="o1-building-fact">
+              <span className="o1-building-fact-label">Did you know?</span>
+              <p>{O1_BUILDING_FACTS[factIndex]}</p>
+            </div>
+          </div>
+        </div>
+      )}
       {errorMessage && <p className="o1-plan-status o1-plan-status--error">{errorMessage}</p>}
       {loadingInitial && <p className="o1-plan-empty">Loading…</p>}
 

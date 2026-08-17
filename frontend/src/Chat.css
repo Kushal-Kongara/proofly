@@ -148,85 +148,51 @@
 }
 
 .chat-suggestions-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.15rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
-@media (max-width: 640px) {
-  .chat-suggestions-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.chat-suggestion-card {
+.chat-suggestion-chip {
   border: 2px solid #0f172a;
-  border-radius: 18px;
-  padding: 1.25rem;
-  background-color: #fef08a;
-  box-shadow: 3px 3px 0px #0f172a;
+  border-radius: 9999px;
+  padding: 0.5rem 0.95rem;
+  background-color: #ffffff;
+  box-shadow: 2px 2px 0px #0f172a;
   text-align: left;
   cursor: pointer;
-  transition: all 0.18s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.chat-suggestion-card:nth-child(2) {
-  background-color: #e0f2fe;
-}
-
-.chat-suggestion-card:nth-child(3) {
-  background-color: #f3e8ff;
-}
-
-.chat-suggestion-card:nth-child(4) {
-  background-color: #dcfce7;
-}
-
-.chat-suggestion-card:hover:not(:disabled) {
-  transform: translate(-2px, -2px);
-  box-shadow: 5px 5px 0px #0f172a;
-}
-
-.chat-suggestion-top {
-  display: flex;
+  transition: all 0.15s ease;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.6rem;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.chat-suggestion-chip:hover:not(:disabled) {
+  background-color: #eef2ff;
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #0f172a;
 }
 
 .chat-suggestion-icon {
-  font-size: 1.35rem;
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
-.chat-suggestion-tag {
-  font-size: 0.7rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #0f172a;
-  background: #ffffff;
-  border: 1px solid #0f172a;
-  border-radius: 9999px;
-  padding: 0.2rem 0.55rem;
+.chat-suggestion-chip-text {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.chat-suggestion-title {
-  font-family: var(--font-heading);
-  font-size: 1.02rem;
-  font-weight: 900;
-  color: #0f172a;
-  margin: 0 0 0.35rem;
-}
-
-.chat-suggestion-text {
-  font-size: 0.85rem;
-  color: #334155;
-  margin: 0;
-  line-height: 1.45;
-  font-style: italic;
+@media (max-width: 640px) {
+  .chat-suggestion-chip-text {
+    white-space: normal;
+  }
 }
 
 /* Chat Messages Thread */

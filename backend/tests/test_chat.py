@@ -3,6 +3,8 @@ always mocked here via dependency overrides — no test in this file makes a
 network call or consumes API credits.
 """
 
+from datetime import datetime, timezone
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -52,8 +54,8 @@ class FakeFeatherlessService:
         self.exception = exception
         self.calls: list[dict] = []
 
-    async def answer_chat_question(self, *, question, history, sources):
-        self.calls.append({"question": question, "history": history, "sources": sources})
+    async def answer_chat_question(self, *, question, history, sources, as_of_date):
+        self.calls.append({"question": question, "history": history, "sources": sources, "as_of_date": as_of_date})
         if self.exception:
             raise self.exception
         assert self.result is not None
@@ -116,6 +118,26 @@ def test_grounded_answer_requires_and_returns_citations(client: TestClient):
         assert body["citations"][0]["document_id"] == "doc_ead"
         assert body["disclaimer"] == "Proofly organizes document-derived information and is not legal advice."
         assert body["searched_document_count"] == 1
+
+
+def test_router_passes_a_real_todays_date_to_featherless(client: TestClient):
+    """Regression test: the model can't correctly tell which of multiple
+    validity periods on one document (e.g. regular OPT vs. a STEM OPT
+    extension, each with its own date range) is currently active unless it's
+    told the real date — see _CHAT_SYSTEM_PROMPT_TEMPLATE's "Today's date is
+    {today}" rule. This proves the router computes and passes one, not just
+    that some value made it through.
+    """
+    supermemory = FakeSupermemoryService(sources=[_source()])
+    featherless = FakeFeatherlessService(
+        result=FeatherlessChatOutput(answer="answer", cited_source_keys=["S1"], insufficient_evidence=False, needs_professional_review=False)
+    )
+
+    for _ in _override(supermemory, featherless):
+        response = client.post("/api/chat", json={"question": "When will my OPT expire?"})
+
+        assert response.status_code == 200
+        assert featherless.calls[0]["as_of_date"] == datetime.now(tz=timezone.utc).date()
 
 
 def test_no_context_path_skips_featherless_entirely(client: TestClient):
