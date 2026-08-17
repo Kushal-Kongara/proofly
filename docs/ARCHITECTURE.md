@@ -694,6 +694,176 @@ build. For a live demo, the mitigation is procedural: make one throwaway
 chat request a minute or two before demoing, so the model is warm by the
 time it matters.
 
+## Phase 6 (this build)
+
+Tavily-powered official immigration updates. No job search, push
+notifications, Google Drive, EB-1, authentication, or deployment — this
+phase searches current official government sources and displays validated
+links/snippets, and nothing more.
+
+```
+Browser: category + time_range code (never a free-text query)
+  -> GET /api/updates
+  -> in-memory cache check (15 min TTL, keyed by category+time_range)
+       hit  -> cached results, no Tavily call
+       miss -> one Tavily search (TavilyService.search_updates)
+            -> server-side result validation (HTTPS + official-domain
+               allowlist + non-empty title/url)
+            -> normalization (ImmigrationUpdateResult: id, title, url,
+               official_domain, snippet, relevance_score, published_date,
+               category, source_type, retrieved_at)
+  -> UpdatesResponse (results, official_domains, retrieved_at, cache_hit,
+     disclaimer)
+```
+
+### Product principle: awareness, not personalized legal advice
+
+Proofly searches current official government sources and displays
+links/snippets. It never claims that a search result changes the user's
+case, never converts a search snippet into legal advice, and never labels a
+result "urgent" based only on Tavily's relevance ranking:
+
+- `ImmigrationUpdateResult` has no `urgent`/`relevant_to_you`/
+  `action_required` field — only `relevance_score` (Tavily's own ranking
+  number, passed through as-is, never re-labeled) and `published_date`
+  (`None` unless Tavily actually supplied one — never defaulted to "today"
+  or inferred from search recency).
+- `app/routers/updates.py` never calls Featherless — search snippets are
+  returned exactly as Tavily/the government source wrote them, never
+  summarized, rewritten, or turned into an answer by a model. This also
+  means a snippet's text is inert as far as the backend is concerned: it is
+  displayed, never interpreted or acted on as an instruction.
+- Every response carries the fixed disclaimer: **"Official-source search
+  results are provided for awareness only. Verify the full source and
+  consult a qualified professional before acting."**
+- The frontend shows "Official government sources only" alongside every
+  result set and never renders an unsupported personalized recommendation
+  ("this affects your OPT deadline," etc.) — only the source's own title,
+  domain, snippet, and publish date (when supplied).
+
+### Why the domain allowlist, and why it's enforced server-side twice
+
+`app/data/immigration_updates.py::OFFICIAL_DOMAINS` (`uscis.gov`,
+`dhs.gov`, `studyinthestates.dhs.gov`, `ice.gov`, `travel.state.gov`,
+`cbp.gov`, `federalregister.gov`) is passed to Tavily as `include_domains`
+*and* re-checked against every returned result's hostname in
+`app/services/tavily_service.py::_matching_official_domain` before a result
+is ever normalized into an `ImmigrationUpdateResult`. Two enforcement
+points, not one, because:
+
+- **Upstream scoping isn't a trust boundary.** `include_domains` shapes what
+  Tavily searches for, but Proofly does not treat "Tavily was asked to
+  restrict to these domains" as proof that every returned URL actually
+  belongs to one — the server-side check is the real boundary.
+- **Lookalike domains must be rejected, not just off-allowlist ones.**
+  `_matching_official_domain` requires the result URL's hostname to
+  *exactly equal* an allowed domain or be a *true subdomain* of one
+  (`hostname == domain or hostname.endswith(f".{domain}")`). This correctly
+  accepts `www.uscis.gov`/`studyinthestates.dhs.gov` and correctly rejects
+  `fakeuscis.gov` (doesn't equal or end with `.uscis.gov`) and
+  `uscis.gov.example.com` (ends with `.example.com`, not `.uscis.gov`) —
+  see `test_deceptive_lookalike_domains_are_rejected` /
+  `test_exact_and_subdomain_official_domains_accepted` in
+  `backend/tests/test_tavily_service.py`.
+- **HTTPS is required, not assumed.** `_canonicalize_url` rejects anything
+  whose scheme isn't exactly `https` before the domain check even runs.
+- **A client never controls the allowlist or the query.** The browser sends
+  only a `category` (`f1_opt`/`o1a`/`general`) and `time_range`
+  (`month`/`year`) code — `UpdateCategory`/`UpdateTimeRange` are closed
+  enums with no free-text field, so nothing a client sends can change which
+  domains are searched or what query text is sent to Tavily.
+
+### Why `include_answer=False`
+
+Every Tavily call uses `search_depth="basic"`, `include_answer=False`,
+`include_raw_content=False`, `include_images=False`, `max_results=5`,
+`topic="general"` (per-request, `time_range` defaults to `year` because
+government policy pages often aren't freshly re-indexed the way news
+articles are, so `month` alone risks returning nothing even when the
+underlying page is current). `include_answer=False` specifically because
+Tavily's generated-answer feature would hand the user LLM-synthesized prose
+about immigration policy with no per-sentence source attribution — exactly
+the "search snippet becomes legal advice" failure mode this phase is
+designed to avoid. Proofly shows only the government source's own title and
+snippet text, each with its own link back to the original page, so the user
+always sees (and can verify) the actual official source, never a model's
+paraphrase of it.
+
+### Server-side result validation and normalization (`app/services/tavily_service.py`)
+
+Every raw Tavily result is passed through `_normalize_result`, which
+returns `None` (silently dropping the result, never raising) unless all of:
+
+- `title` is a non-empty string.
+- `url` is a well-formed `https://` URL with a hostname
+  (`_canonicalize_url`) — a bare fragment (`#section`) is stripped, and
+  known tracking query parameters (`utm_*`, `gclid`, `fbclid`, `mc_cid`,
+  `mc_eid`, `igshid`, `ref`, `ref_src`) are stripped, while every other
+  query parameter is left as-is ("stripped where safe" — Proofly never
+  guesses which non-tracking parameters are load-bearing for a given
+  government site).
+- the canonicalized URL's hostname matches `OFFICIAL_DOMAINS` (see above).
+
+Surviving results are deduplicated by canonicalized URL (`_normalize_results`,
+first occurrence wins — Tavily already returns results in relevance order),
+and each `snippet` is capped at `MAX_SNIPPET_LENGTH` (300 characters,
+truncated on a word boundary with an ellipsis — mirrors the chat
+citation excerpt pattern in `app/routers/chat.py::_excerpt`).
+`published_date` is parsed from whatever Tavily supplied (`_parse_published_date`,
+accepting ISO `YYYY-MM-DD` or RFC 2822 date strings) and left `None`
+whenever Tavily didn't supply one or it doesn't parse cleanly — never
+defaulted, inferred, or set to "today." `id` is a stable
+`sha256(canonical_url)[:16]` hex digest, so the same source URL always gets
+the same result ID across requests.
+
+### Caching (accepted limitation, same pattern as Phase 3/4's in-process stores)
+
+`app/services/tavily_service.py::_CACHE` is a plain module-level dict keyed
+by `(category, time_range)`, holding the normalized results, the time they
+were retrieved, and a 15-minute (`TAVILY_CACHE_TTL_SECONDS`) expiry. A
+request that hits a live (non-expired) cache entry returns it directly and
+**never calls Tavily** — no credit is spent on a cache hit
+(`test_cache_prevents_a_second_tavily_call`). `UpdatesResponse.cache_hit`
+and `.retrieved_at` always reflect this, so the frontend can show a
+"Cached result" indicator and an accurate "last checked" time rather than
+implying every page view is a fresh search.
+
+This cache is **not** shared across worker processes and is lost on
+backend restart — identical trade-off, and identical justification (a
+one-day prototype with no shared cache/database), as the Phase 3
+`_latest_analysis` and Phase 4 `_latest_assessment` in-process stores. A
+production deployment needs a shared cache (e.g. Redis) here instead.
+
+### Tavily client, request parameters, and error handling
+
+`app/services/tavily_service.py::TavilyService` wraps `tavily-python`'s
+`AsyncTavilyClient` (pinned `tavily-python==0.7.27`), injected via
+`Depends(get_tavily_service)` so tests substitute a fake and never touch
+the network or spend a Tavily credit. `TAVILY_API_KEY` is read only here,
+passed straight to the client, and never logged, returned in a response, or
+sent to the frontend. Every search call passes a bounded, safe request
+timeout (`TAVILY_REQUEST_TIMEOUT_SECONDS`, default 15s).
+
+| Endpoint | Behavior |
+| --- | --- |
+| `GET /api/updates?category=&time_range=` | `200` with the full `UpdatesResponse` on success. `400` on an unsupported `category`/`time_range` (enforced by the `UpdateCategory`/`UpdateTimeRange` enum query-param types, surfaced via the same global `RequestValidationError` handler every other phase's `400`s use). `503` if `TAVILY_API_KEY` isn't configured, or Tavily rejects the configured key (`TavilyConfigurationError`). `502` on any other Tavily upstream failure — timeout, network error, bad request, rate limit (`TavilyUpstreamError`). No error path ever returns a raw Tavily exception message, the API key, or Tavily request internals — every error maps to one of the fixed, generic messages above (`_sanitized_upstream_message`, `_handle_updates_error`). |
+
+### Frontend
+
+`frontend/src/Updates.tsx` (nav item "Official Updates", alongside
+Dashboard, Documents, O-1 Plan, and Ask Proofly). Category controls (F-1 /
+OPT, O-1A, General USCIS) and time-range controls (Past month, Past year)
+each re-trigger `GET /api/updates`. Each result card shows the source
+title, an official-domain badge, the snippet, the published date only when
+`published_date` is non-null (via `formatDateOnly`, the same date-only
+utility every other date-only field in the app uses), and an "Open official
+source" link (`target="_blank" rel="noopener noreferrer"`). A "Cached
+result" badge and a "Last checked" timestamp (a real instant, so it uses
+`toLocaleString()` per `frontend/src/lib/date.ts`'s date-only-vs-timestamp
+rule) reflect `cache_hit`/`retrieved_at`. "Official government sources
+only" and the fixed disclaimer are always visible. No Featherless call is
+made anywhere on this page — see "Why `include_answer=False`" above.
+
 ## Future Responsibilities of Each Service
 
 ### FastAPI backend
@@ -731,9 +901,15 @@ policy, and one-repair-attempt behavior via `_call_with_repair` — see
 model calls with inline secrets.
 
 ### Tavily
-Web search for grounding chatbot answers in current, official public
-sources (e.g. USCIS policy pages) alongside the user's own documents,
-clearly distinguished from document-sourced facts.
+Official-source web search (`tavily-python==0.7.27`'s `AsyncTavilyClient`).
+As of Phase 6, powers `GET /api/updates` — one search per (category,
+time_range) pair, restricted to `OFFICIAL_DOMAINS`, cached in-process for
+15 minutes — see "Phase 6" above. Referenced only via `TAVILY_API_KEY` /
+`TAVILY_REQUEST_TIMEOUT_SECONDS` / `TAVILY_CACHE_TTL_SECONDS`. Not used to
+ground chatbot answers in this phase — Phase 5's `Ask Proofly` chatbot
+remains document-only (see "Phase 5" above); Official Updates is a
+separate, clearly-labeled surface, and no Featherless summarization is
+applied to any Tavily result.
 
 ## Data Contracts
 
@@ -820,3 +996,9 @@ document's deadline.
   a rejected one — 401/403 from Featherless) returns `503`, not a crash.
   Document content sent to Featherless is never logged in full — only
   lengths/counts and short, field-level Pydantic validation error summaries.
+- `TAVILY_API_KEY` is read only in `app/services/tavily_service.py` and
+  passed straight to `AsyncTavilyClient` — same rules as Supermemory/
+  Featherless: never logged, never in a response, never sent to the
+  frontend. A missing or rejected key returns `503`, not a crash; every
+  other Tavily failure returns a fixed, generic `502` message
+  (`_sanitized_upstream_message`), never a raw SDK exception string.

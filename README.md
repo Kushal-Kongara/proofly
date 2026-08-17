@@ -10,6 +10,7 @@ Proofly is an AI immigration document and O-1 evidence copilot built for Open At
 - Visa/status compliance timeline
 - Document-grounded chatbot
 - O-1A evidence-readiness planner
+- Official immigration updates search (Tavily, official government sources only)
 
 All demo data is synthetic (`sample_documents/demo_profile.json`). No authentication in this build.
 
@@ -20,7 +21,8 @@ All demo data is synthetic (`sample_documents/demo_profile.json`). No authentica
 - Supermemory (document vault ingestion, Phase 2; document-mode semantic
   search, Phase 5), Featherless (document extraction + deterministic
   timeline, Phase 3; O-1A evidence extraction, Phase 4; document-grounded
-  chat answers, Phase 5) — Tavily still a future integration
+  chat answers, Phase 5), Tavily (official government immigration source
+  search, Phase 6)
 
 See `docs/ARCHITECTURE.md` for how these fit together.
 
@@ -38,6 +40,7 @@ document vault, set `SUPERMEMORY_API_KEY` to a real Supermemory API key.
 the only thing that sets this; the frontend never sends a container tag. To
 run document analysis, also set `FEATHERLESS_API_KEY`
 (`FEATHERLESS_BASE_URL` and `FEATHERLESS_MODEL` already have sane defaults).
+To use Official Updates, also set `TAVILY_API_KEY`.
 
 ### 2. Backend (FastAPI)
 
@@ -216,6 +219,32 @@ curl -X POST http://localhost:8000/api/chat \
   -H "Content-Type: application/json" \
   -d '{"question": "When does my current work authorization expire?", "history": []}'
 ```
+
+### 8. Official Updates (Tavily-powered official immigration source search, Phase 6)
+
+**This is a link/snippet search over official government sources, not
+personalized legal advice.** Proofly never claims a search result changes
+your case, never converts a search snippet into legal advice, and never
+labels a result "urgent" based only on search relevance — see "Why Tavily
+is restricted to official domains" in `docs/ARCHITECTURE.md`.
+
+Open the **Official Updates** tab, pick a category (F-1 / OPT, O-1A, or
+General USCIS) and a time range (past month or past year). Each combination
+calls Tavily once, restricted to a fixed, server-owned allowlist of official
+domains (`uscis.gov`, `dhs.gov`, `studyinthestates.dhs.gov`, `ice.gov`,
+`travel.state.gov`, `cbp.gov`, `federalregister.gov`), and is cached
+in-process for 15 minutes so repeat views don't spend another Tavily
+credit.
+
+Equivalent API call:
+
+```bash
+curl "http://localhost:8000/api/updates?category=f1_opt&time_range=year"
+```
+
+The in-memory cache (keyed by category + time range) is not shared across
+worker processes and is lost on restart — same accepted prototype
+limitation as the Phase 3/4 in-process stores.
 
 ## Project Layout
 

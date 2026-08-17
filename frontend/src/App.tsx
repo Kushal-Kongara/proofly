@@ -3,9 +3,10 @@ import Chat from "./Chat";
 import Dashboard from "./Dashboard";
 import DocumentVault from "./DocumentVault";
 import O1Plan from "./O1Plan";
+import Updates from "./Updates";
 
 type BackendStatus = "checking" | "connected" | "disconnected";
-type Page = "dashboard" | "documents" | "o1plan" | "chat";
+type Page = "dashboard" | "documents" | "o1plan" | "chat" | "updates";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
@@ -76,6 +77,13 @@ function App() {
         >
           Ask Proofly
         </button>
+        <button
+          type="button"
+          className={`app-nav-btn${page === "updates" ? " app-nav-btn--active" : ""}`}
+          onClick={() => setPage("updates")}
+        >
+          Official Updates
+        </button>
       </nav>
 
       <div style={{ display: page === "dashboard" ? "block" : "none" }}>
@@ -89,6 +97,9 @@ function App() {
       </div>
       <div style={{ display: page === "chat" ? "block" : "none" }}>
         <Chat />
+      </div>
+      <div style={{ display: page === "updates" ? "block" : "none" }}>
+        <Updates />
       </div>
     </main>
   );

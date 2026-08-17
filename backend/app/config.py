@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     chat_relevance_threshold: float | None = None
     chat_max_context_characters: int = 8000
 
+    # Official immigration updates search (Phase 6, app/services/tavily_service.py).
+    tavily_request_timeout_seconds: float = 15.0
+    tavily_cache_ttl_seconds: int = 900
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
