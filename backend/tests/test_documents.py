@@ -267,6 +267,104 @@ def test_list_documents_still_works_in_demo_read_only(
     assert len(response.json()) == 1
 
 
+@pytest.fixture
+def construction_tracking_override():
+    """Overrides get_supermemory_service with a factory that counts how many
+    times it's called — proves SupermemoryService is never *constructed*,
+    not just that its methods go uncalled (a fake instance handed out by a
+    plain lambda override, as `fake_service` does, can't distinguish those).
+    """
+    counter = {"count": 0}
+
+    def _factory() -> FakeSupermemoryService:
+        counter["count"] += 1
+        return FakeSupermemoryService()
+
+    app.dependency_overrides[get_supermemory_service] = _factory
+    yield counter
+    app.dependency_overrides.pop(get_supermemory_service, None)
+
+
+def test_empty_pdf_returns_403_in_demo_read_only_not_400(
+    client: TestClient, demo_read_only, construction_tracking_override
+):
+    """The bug this guards against: file validation (empty-file check) ran
+    before the demo-read-only guard, so an empty upload got 400 instead of
+    the public-demo 403 — meaning the guard could be bypassed simply by
+    sending an invalid file.
+    """
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("empty.pdf", b"", "application/pdf")},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert construction_tracking_override["count"] == 0
+
+
+def test_invalid_extension_returns_403_in_demo_read_only_not_400(
+    client: TestClient, demo_read_only, construction_tracking_override
+):
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("notes.txt", b"plain text content", "text/plain")},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert construction_tracking_override["count"] == 0
+
+
+def test_oversized_upload_returns_403_in_demo_read_only_not_413(
+    client: TestClient, demo_read_only, construction_tracking_override
+):
+    oversized = b"%PDF-1.4\n" + (b"0" * (10 * 1024 * 1024 + 1))
+
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("big.pdf", oversized, "application/pdf")},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert construction_tracking_override["count"] == 0
+
+
+def test_invalid_mime_type_returns_403_in_demo_read_only_not_400(
+    client: TestClient, demo_read_only, construction_tracking_override
+):
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("fake.pdf", PDF_BYTES, "text/plain")},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert construction_tracking_override["count"] == 0
+
+
+def test_upload_never_constructs_supermemory_service_in_demo_read_only(
+    client: TestClient, demo_read_only, construction_tracking_override
+):
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("Maya_Patel_Resume.pdf", PDF_BYTES, "application/pdf")},
+    )
+
+    assert response.status_code == 403
+    assert construction_tracking_override["count"] == 0
+
+
+def test_delete_never_constructs_supermemory_service_in_demo_read_only(
+    client: TestClient, demo_read_only, construction_tracking_override
+):
+    response = client.delete("/api/documents/sm_doc_1")
+
+    assert response.status_code == 403
+    assert construction_tracking_override["count"] == 0
+
+
 def test_document_status_still_works_in_demo_read_only(client: TestClient, demo_read_only):
     class StatusOnlyFakeService(FakeSupermemoryService):
         async def get_document_status(self, document_id: str) -> VaultDocument:
