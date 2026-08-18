@@ -42,6 +42,20 @@ def _reject_if_demo_read_only() -> None:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=DEMO_READ_ONLY_MESSAGE)
 
 
+def _reject_upload_if_blocked() -> None:
+    """Upload variant of the guard above (Phase 7D). Upload is blocked when
+    demo_read_only is on UNLESS demo_allow_uploads has explicitly carved it
+    back out — e.g. for hackathon judging, where judges should be able to
+    exercise the real upload pipeline while deletion (still guarded by
+    `_reject_if_demo_read_only` above, unconditionally) and every other
+    demo protection stay in place. Same ordering guarantee as the guard
+    above: declared as the route's first dependency, so it runs before
+    file validation or SupermemoryService construction.
+    """
+    if settings.demo_read_only and not settings.demo_allow_uploads:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=DEMO_READ_ONLY_MESSAGE)
+
+
 # extension -> allowed declared MIME type(s). Both must match for a file to be accepted.
 _ALLOWED_TYPES: dict[str, set[str]] = {
     ".pdf": {"application/pdf"},
@@ -99,7 +113,7 @@ def _handle_service_error(exc: Exception) -> HTTPException:
 @router.post("/upload", response_model=VaultDocument, status_code=status.HTTP_201_CREATED)
 async def upload_document(
     file: UploadFile,
-    _demo_guard: None = Depends(_reject_if_demo_read_only),
+    _demo_guard: None = Depends(_reject_upload_if_blocked),
     service: SupermemoryService = Depends(get_supermemory_service),
 ) -> VaultDocument:
     content = await file.read()

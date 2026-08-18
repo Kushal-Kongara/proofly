@@ -45,6 +45,14 @@ class Settings(BaseSettings):
     # development and the test suite are unaffected.
     demo_read_only: bool = False
 
+    # Public-demo upload carve-out (Phase 7D): when demo_read_only is true,
+    # setting this true additionally re-enables POST /api/documents/upload
+    # (still through the real validation + Supermemory pipeline) so judges
+    # can exercise the real upload workflow, while DELETE stays blocked
+    # regardless of this flag. Ignored when demo_read_only is false. False
+    # by default so local development and the test suite are unaffected.
+    demo_allow_uploads: bool = False
+
     # Upload limits enforced by the document vault endpoints.
     max_upload_size_bytes: int = 10 * 1024 * 1024
 

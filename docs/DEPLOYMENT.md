@@ -47,6 +47,7 @@ each once both URLs are known. This is normal, not a failure.
 | `TAVILY_API_KEY` | You, in the Render dashboard | Secret. Same rule. |
 | `CORS_ORIGINS` | You, in the Render dashboard | Not secret, but deployment-specific — the deployed frontend's exact origin. Format below. |
 | `DEMO_READ_ONLY` | Blueprint (`render.yaml`) | `"true"`. Not a secret. See Section 11 below. |
+| `DEMO_ALLOW_UPLOADS` | Blueprint (`render.yaml`) | `"true"`. Not a secret. Upload-only carve-out on top of `DEMO_READ_ONLY`; see Section 11. |
 
 `PORT` is never set manually — Render injects it, and `startCommand` reads
 it as `$PORT`.
@@ -57,6 +58,7 @@ it as `$PORT`.
 |---|---|---|
 | `VITE_API_BASE_URL` | You, in the Render dashboard | The deployed `proofly-api` URL. No backend API keys ever belong here — the frontend never talks to Featherless/Supermemory/Tavily directly (see `docs/ARCHITECTURE.md`'s Overview). |
 | `VITE_DEMO_READ_ONLY` | Blueprint (`render.yaml`) | `"true"`. Not a secret. Must agree with backend's `DEMO_READ_ONLY` — see Section 11. |
+| `VITE_DEMO_ALLOW_UPLOADS` | Blueprint (`render.yaml`) | `"true"`. Not a secret. Must agree with backend's `DEMO_ALLOW_UPLOADS` — see Section 11. |
 
 ## 3. Setting the final frontend and backend URLs
 
@@ -220,37 +222,65 @@ deployment of this project.
 
 This applies to whoever seeds the container before enabling read-only mode
 (Section 11) — once `DEMO_READ_ONLY=true` is live, the public deployment
-itself can no longer accept an upload of any kind.
+itself can no longer *delete* anything, and can only upload while the
+Section 11 upload carve-out is also on — and even then, only with more
+synthetic documents. Never anything real.
 
-## 11. Public-demo read-only mode (Phase 7B)
+## 11. Public-demo read-only mode, with an upload carve-out for judging (Phase 7B/7D)
 
 `render.yaml` sets `DEMO_READ_ONLY=true` on `proofly-api` and
-`VITE_DEMO_READ_ONLY=true` on `proofly-web`. Together these turn the public
-deployment into a read-only showcase of the preloaded synthetic documents,
-so an anonymous visitor can't mutate the one shared Supermemory container:
+`VITE_DEMO_READ_ONLY=true` on `proofly-web`. Together these turn the
+public deployment into a showcase of the preloaded synthetic documents
+that an anonymous visitor can't mutate — with one deliberate, narrower
+carve-out (below) so judges can still exercise the real upload workflow:
 
-- Backend: `POST /api/documents/upload` and `DELETE /api/documents/{id}`
-  both return `403` with the fixed body `"Uploads and deletions are
-  disabled in the public demo."`, checked **before** any Supermemory call
+- Backend: `DELETE /api/documents/{id}` always returns `403` with the
+  fixed body `"Uploads and deletions are disabled in the public demo."`
+  while `DEMO_READ_ONLY=true`, checked **before** any Supermemory call
   (`app/routers/documents.py::_reject_if_demo_read_only`). Listing
   (`GET /api/documents`) and status checks
   (`GET /api/documents/{id}/status`) are unaffected — polling still works.
   Dashboard analysis, the O-1A assessment, grounded chat, and Official
   Updates are all unaffected; none of them writes to the document vault.
-- Frontend: the Document Vault page hides the upload dropzone (replaced
-  with a disabled-state explanation) and disables every delete button, and
-  a banner appears on every page explaining the deployment is a read-only
-  public demo. `frontend/src/DocumentVault.tsx` also refuses client-side
-  before attempting either call — it never shows a fake "upload
-  succeeded"/"deleted" message for a write the backend would reject.
-- **To seed or refresh the deployed demo's documents**, temporarily unset
-  `DEMO_READ_ONLY`/`VITE_DEMO_READ_ONLY` (or run the upload against
-  `proofly-api` directly with a local `SUPERMEMORY_API_KEY` pointed at the
-  same container), upload only the files from
-  `sample_documents/pdfs/` (Section 10), then restore both flags to
-  `"true"` and redeploy.
-- Both flags default to `false`/unset for local development and the test
-  suite — nothing about local `npm run dev` / `uvicorn --reload` changes.
+- Frontend: the Document Vault page disables every delete button and a
+  banner appears on every page explaining the deployment is a public demo.
+  `frontend/src/DocumentVault.tsx` also refuses client-side before
+  attempting a delete — it never shows a fake "deleted" message for a
+  write the backend would reject.
+- Both `DEMO_READ_ONLY` and `VITE_DEMO_READ_ONLY` default to `false`/unset
+  for local development and the test suite — nothing about local
+  `npm run dev` / `uvicorn --reload` changes.
+
+**Upload carve-out (Phase 7D):** `render.yaml` additionally sets
+`DEMO_ALLOW_UPLOADS=true` on `proofly-api` and
+`VITE_DEMO_ALLOW_UPLOADS=true` on `proofly-web`, currently `"true"` so
+hackathon judges can try the real Document Vault upload workflow on the
+live deployment. With `DEMO_READ_ONLY=true` and `DEMO_ALLOW_UPLOADS=true`:
+
+- `POST /api/documents/upload` is allowed and runs the real pipeline —
+  same extension/MIME/empty-file/10MB validation
+  (`app/routers/documents.py::_validate_upload`) and the same Supermemory
+  processing as a normal deployment (`_reject_upload_if_blocked` only
+  blocks when `demo_allow_uploads` is off). `DELETE` stays `403`
+  regardless of this flag — the carve-out is upload-only.
+- Frontend shows the normal upload dropzone plus a warning above it
+  ("Public judge demo: upload only synthetic documents. Do not upload
+  real immigration records or personal information.") and a link to
+  download a bundled synthetic sample PDF
+  (`frontend/public/synthetic-sample-document.pdf`) so judges have
+  something safe to upload without sourcing their own file. Delete
+  buttons stay disabled — this carve-out never touches
+  `DELETE_BLOCKED`/`DEMO_READ_ONLY`.
+- **This build still has no authentication and no per-user data
+  isolation** (Section 10) — every judge's upload lands in the one shared
+  Supermemory container and is visible to every other visitor. Only
+  synthetic documents should ever be uploaded here.
+- Set `DEMO_ALLOW_UPLOADS`/`VITE_DEMO_ALLOW_UPLOADS` back to `"false"`
+  after judging to return to a fully read-only public demo; `DEMO_READ_ONLY`
+  itself should stay `"true"` at all times on this deployment.
+- Both allow-uploads flags default to `false`/unset for local development
+  and the test suite, and are inert unless `DEMO_READ_ONLY`/
+  `VITE_DEMO_READ_ONLY` is also `true`.
 
 ## 12. Cold-start experience (Phase 7C)
 
@@ -288,6 +318,12 @@ those is true anymore:
 - The UI text never mentions Render, the hosting provider, or "free
   hosting" — it only ever says "the public demo server," so the permanent
   normal-mode UI stays host-agnostic.
+
+`.github/workflows/keep-backend-warm.yml` pings `/health` every 10 minutes
+so `proofly-api` mostly never spins down in the first place — the 90s
+retry above is then a fallback for the rare cold hit, not the common case.
+GitHub's scheduler is best-effort (can lag under load), so it's a
+mitigation, not a guarantee.
 
 ## Appendix: why Python 3.13.8
 

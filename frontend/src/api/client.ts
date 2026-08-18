@@ -1,8 +1,14 @@
+import { isDeleteBlocked, isUploadBlocked } from "./demoAccess";
 import { resolveApiBaseUrl } from "./resolveApiBaseUrl";
+import { resolveDemoAllowUploads } from "./resolveDemoAllowUploads";
 import { resolveDemoReadOnly } from "./resolveDemoReadOnly";
 
 export const API_BASE_URL = resolveApiBaseUrl(import.meta.env);
 export const DEMO_READ_ONLY = resolveDemoReadOnly(import.meta.env);
+export const DEMO_ALLOW_UPLOADS = resolveDemoAllowUploads(import.meta.env);
+
+export const UPLOAD_BLOCKED = isUploadBlocked(DEMO_READ_ONLY, DEMO_ALLOW_UPLOADS);
+export const DELETE_BLOCKED = isDeleteBlocked(DEMO_READ_ONLY);
 
 export class ApiError extends Error {
   status: number;

@@ -70,6 +70,17 @@ services:
       # demo container. See docs/DEPLOYMENT.md.
       - key: DEMO_READ_ONLY
         value: "true"
+      # Public-demo upload carve-out (Phase 7D): not a secret. With
+      # DEMO_READ_ONLY=true above, this re-enables POST
+      # /api/documents/upload only — through the real validation +
+      # Supermemory pipeline — so judges can exercise the real upload
+      # workflow. DELETE stays 403 regardless of this flag. Deliberate
+      # tradeoff: this build has no auth/per-user isolation
+      # (docs/DEPLOYMENT.md Section 10) — every visitor shares one
+      # Supermemory container, so anything uploaded is visible to every
+      # other visitor. Set back to "false" after judging.
+      - key: DEMO_ALLOW_UPLOADS
+        value: "true"
 
   # --- Frontend: static React/Vite build (frontend/src) ---------------
   - type: web
@@ -93,4 +104,11 @@ services:
       # backend's DEMO_READ_ONLY above — shows the read-only banner and
       # disables upload/delete controls in the UI. See docs/DEPLOYMENT.md.
       - key: VITE_DEMO_READ_ONLY
+        value: "true"
+      # Public-demo upload carve-out (Phase 7D): not a secret. Must match
+      # the backend's DEMO_ALLOW_UPLOADS above — shows the normal upload
+      # dropzone and the judge warning/sample-download instead of the
+      # disabled state, while delete controls stay disabled. See
+      # docs/DEPLOYMENT.md.
+      - key: VITE_DEMO_ALLOW_UPLOADS
         value: "true"

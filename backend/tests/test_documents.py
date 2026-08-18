@@ -365,6 +365,136 @@ def test_delete_never_constructs_supermemory_service_in_demo_read_only(
     assert construction_tracking_override["count"] == 0
 
 
+# --- Phase 7D: public-demo upload carve-out for judging --------------------
+
+
+def test_demo_allow_uploads_defaults_to_false():
+    """Local dev and the test suite must see normal read/write behavior
+    unless DEMO_ALLOW_UPLOADS is explicitly set (mirrors demo_read_only).
+    """
+    assert settings.demo_allow_uploads is False
+
+
+@pytest.fixture
+def demo_allow_uploads():
+    settings.demo_allow_uploads = True
+    yield
+    settings.demo_allow_uploads = False
+
+
+def test_upload_succeeds_when_demo_read_only_and_allow_uploads(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only, demo_allow_uploads
+):
+    fake_service.upload_result = VaultDocument(
+        id="sm_doc_1",
+        custom_id="proofly_abc123",
+        filename="Maya_Patel_Resume.pdf",
+        content_type="application/pdf",
+        status=DocumentProcessingStatus.QUEUED,
+        metadata={"original_filename": "Maya_Patel_Resume.pdf", "synthetic": True},
+    )
+
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("Maya_Patel_Resume.pdf", PDF_BYTES, "application/pdf")},
+    )
+
+    assert response.status_code == 201
+    assert response.json()["status"] == "queued"
+    assert len(fake_service.upload_calls) == 1
+
+
+def test_upload_returns_403_when_demo_read_only_and_allow_uploads_false(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only
+):
+    """demo_allow_uploads defaults to False, so this is the same guard
+    behavior as before the carve-out existed — the flag must be turned on
+    explicitly.
+    """
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("Maya_Patel_Resume.pdf", PDF_BYTES, "application/pdf")},
+    )
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert fake_service.upload_calls == []
+
+
+def test_delete_still_returns_403_when_demo_read_only_and_allow_uploads_true(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only, demo_allow_uploads
+):
+    """The upload carve-out never extends to delete — DEMO_ALLOW_UPLOADS
+    only reaches the upload route's guard.
+    """
+    response = client.delete("/api/documents/sm_doc_1")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert fake_service.delete_calls == []
+
+
+def test_delete_still_returns_403_when_demo_read_only_and_allow_uploads_false(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only
+):
+    response = client.delete("/api/documents/sm_doc_1")
+
+    assert response.status_code == 403
+    assert response.json()["detail"] == DEMO_READ_ONLY_MESSAGE
+    assert fake_service.delete_calls == []
+
+
+def test_upload_validation_still_applies_when_demo_read_only_and_allow_uploads(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only, demo_allow_uploads
+):
+    """The carve-out re-enables the real pipeline, not a bypass of it —
+    extension/MIME/empty-file/size validation must still run and still
+    return their normal 400/413, not a silent pass-through.
+    """
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("notes.txt", b"plain text content", "text/plain")},
+    )
+    assert response.status_code == 400
+    assert fake_service.upload_calls == []
+
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("empty.pdf", b"", "application/pdf")},
+    )
+    assert response.status_code == 400
+    assert fake_service.upload_calls == []
+
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("fake.pdf", PDF_BYTES, "text/plain")},
+    )
+    assert response.status_code == 400
+    assert fake_service.upload_calls == []
+
+    oversized = b"%PDF-1.4\n" + (b"0" * (10 * 1024 * 1024 + 1))
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("big.pdf", oversized, "application/pdf")},
+    )
+    assert response.status_code == 413
+    assert fake_service.upload_calls == []
+
+
+def test_upload_supermemory_error_mapping_still_applies_when_allow_uploads(
+    client: TestClient, fake_service: FakeSupermemoryService, demo_read_only, demo_allow_uploads
+):
+    fake_service.upload_exception = SupermemoryConfigurationError("SUPERMEMORY_API_KEY is not configured")
+
+    response = client.post(
+        "/api/documents/upload",
+        files={"file": ("Maya_Patel_Resume.pdf", PDF_BYTES, "application/pdf")},
+    )
+
+    assert response.status_code == 503
+    assert "SUPERMEMORY_API_KEY" not in response.text
+
+
 def test_document_status_still_works_in_demo_read_only(client: TestClient, demo_read_only):
     class StatusOnlyFakeService(FakeSupermemoryService):
         async def get_document_status(self, document_id: str) -> VaultDocument:

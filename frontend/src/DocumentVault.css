@@ -95,6 +95,20 @@
   white-space: pre-wrap;
 }
 
+.vault-status--warning {
+  margin: 0 0 1rem;
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+.vault-sample-download {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+  color: var(--color-primary);
+}
+
 .vault-list {
   margin-top: 2rem;
   display: flex;
